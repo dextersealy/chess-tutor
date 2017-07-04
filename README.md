@@ -29,8 +29,7 @@ The `Router` maps urls to actions in custom controllers.
 
 ## Rack Middleware
 
-The following middle
 Middleware|Description
----|---
+----|----
 ShowExceptions | Renders detailed errors messages when the controller raises an exception. The message includes the file name, line number and a snippet of the surrounding code.
 Static | Serves static assets from the */assets* folder. It uses the Ruby mime-types library to identify MIME types from file extensions.
