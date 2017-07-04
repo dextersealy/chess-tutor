@@ -16,13 +16,21 @@ class ControllerBase
   # Use ERB and binding to render templates
 
   def render(template_name)
+    app_template = ERB.new(File.read('views/application.html.erb'))
+
     snake_case_class_name = self.class.to_s.underscore
     template_path = "views/#{snake_case_class_name}/#{template_name}.html.erb"
-
-    template = File.read(template_path)
-    html = ERB.new(template).result(binding)
+    action_template = File.read(template_path)
+    
+    html = app_template.result(self.get_binding {
+      ERB.new(action_template).result(binding)
+    })
 
     render_content(html, 'text/html')
+  end
+
+  def get_binding
+    binding
   end
 
   # Redirect to specified URL
@@ -112,5 +120,5 @@ class ControllerBase
   private
 
   @@protect_from_forgery = false
-  
+
 end
