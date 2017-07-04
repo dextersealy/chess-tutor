@@ -1,0 +1,17 @@
+<%= @exception.class %>
+
+<pre><%= @exception.message %></pre>
+
+<p>Stack Trace:</p>
+<% @exception.backtrace.each do |loc| %>
+  <pre><%= loc %></pre>
+<% end %>
+
+<% if @source %>
+  <p>Source:</p>
+  <% @source.each do |line_no, line| %>
+    <%= "<b>" if line_no == @line %>
+    <pre><%= line_no %>: <%= line %></pre>
+    <%= "</b>" if line_no == @line %>
+  <% end %>
+<% end %>
