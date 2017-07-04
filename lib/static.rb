@@ -38,9 +38,9 @@ class Static
   end
 
   def match_static(path)
-    return nil unless m = path.match(/\/public\/(?<file>[\w\.\/]+)/)
+    return nil unless m = path.match(/\/assets\/(?<file>[\w\.\/]+)/)
     file = m.names.zip(m.captures).to_h['file']
-    "public/#{file}"
+    "assets/#{file}"
   end
 
 end
