@@ -8,9 +8,14 @@ class Game
 
    def initialize
      @board = Board.new
+     @current_player = :white
      @display = Display.new(@board)
      @player1 = Player.new(@board, @display, :white)
      @player2 = Player.new(@board, @display, :black)
+   end
+
+   def reset
+     @board = Board.new
      @current_player = :white
    end
 

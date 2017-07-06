@@ -13,6 +13,18 @@ class ChessController < ControllerBase
     self.game.board
   end
 
+  def new
+    game.reset
+    render json: get_board_state
+  end
+
+  def get_board_state
+    pieces = board.get_pieces(:white).concat(board.get_pieces(:black))
+    pieces.map do |piece|
+      { id: board.coordinate_from_pos(piece.current_pos), value: piece.to_html }
+    end
+  end
+
   def game
     ChessController.game
   end

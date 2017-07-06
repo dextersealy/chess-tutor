@@ -18,10 +18,25 @@ class Board {
     this.hideMoves = this.hideMoves.bind(this);
 
     this.$board = $('.board')
-    this.$board.on('click', this.handleClick);
+    $('#start-btn').click(() => this.startGame());
     $('.cell').hover(e => this.showMoves(e), e => this.hideMoves(e));
+    $('.board').click(e => this.handleClick(e));
 
-    this.getMoveable();
+  }
+
+  startGame() {
+    $.post('/chess/new').then(pieces => {
+      this.setBoard(pieces)
+      this.getMoveable();
+    });
+  }
+
+  setBoard(pieces) {
+    $('.cell').html(' ')
+    $('.selected').toggleClass('selected');
+    pieces.forEach(piece => {
+      $(`#${piece.id}`).html(piece.value)
+    });
   }
 
   showMoves(e) {
