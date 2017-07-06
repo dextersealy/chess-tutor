@@ -1,12 +1,11 @@
-
 require_relative 'piece.rb'
-require_relative 'display.rb'
 require_relative 'rook.rb'
 require_relative 'knight.rb'
 require_relative 'king.rb'
 require_relative 'queen.rb'
 require_relative 'pawn.rb'
 require_relative 'bishop.rb'
+require_relative 'null.rb'
 require_relative 'errors.rb'
 
 require 'byebug'
@@ -113,7 +112,7 @@ class Board
 
   def make_pieces(factory_array, color, row)
     factory_array.map.with_index do |class_, idx|
-      make_piece(class_, color.to_sym, [row, idx])
+      make_piece(class_, color, [row, idx])
     end
   end
 

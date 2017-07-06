@@ -4,6 +4,11 @@ class NullPiece < Piece
   def initialize
     super(nil, nil)
   end
+
+  def movements
+    []
+  end
+
   def to_s
     " "
   end

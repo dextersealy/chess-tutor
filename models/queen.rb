@@ -4,7 +4,7 @@ require_relative 'sliding_piece.rb'
 class Queen < Piece
   include SlidingPiece
 
-  def move_dirs
+  def movements
     [:nw, :ne, :sw, :se, :up, :down, :left, :right]
   end
 

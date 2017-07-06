@@ -15,10 +15,6 @@ class Piece
     @current_pos = nil
   end
 
-  def moves
-    []
-  end
-
   def valid_pos?(pos)
     return false unless board.in_bounds?(pos)
     board[pos].color != self.color
@@ -33,8 +29,16 @@ class Piece
     "#{self.to_s}"
   end
 
-  def delta_sum(pos, delta)
+  def add(pos, delta)
     pos.zip(delta).map { |arr| arr.reduce(:+) }
+  end
+
+  def moves
+    result = []
+    movements.each do |direction|
+      result.concat(get_moves(direction, current_pos))
+    end
+    result
   end
 
   def valid_moves
@@ -51,15 +55,4 @@ class Piece
     result
   end
 
-end
-
-class NullPiece < Piece
-  include Singleton
-
-  def initialize
-    super(nil, nil)
-  end
-  def to_s
-    " "
-  end
 end

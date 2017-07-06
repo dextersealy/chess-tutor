@@ -4,7 +4,7 @@ require_relative 'stepping_piece.rb'
 class King < Piece
   include SteppingPiece
 
-  def move_dirs
+  def movements
     [:nw, :ne, :sw, :se, :up, :down, :left, :right]
   end
 
