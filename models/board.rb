@@ -82,6 +82,18 @@ class Board
     pieces.map { |piece| [piece.class.name, piece.color, piece.current_pos] }
   end
 
+  def get_threats(start_pos, end_pos)
+    end_piece = self[end_pos]
+    move_piece(start_pos, end_pos)
+
+    result = grid.flatten.each.select { |piece| piece.moves.include?(end_pos) }
+
+    self[start_pos] = self[end_pos]
+    self[start_pos].current_pos = start_pos
+    self[end_pos] = end_piece
+    result
+  end
+
   private
 
   def find_king(color)

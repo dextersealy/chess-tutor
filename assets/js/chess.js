@@ -14,25 +14,28 @@ $(() => {
 class Board {
   constructor() {
     this.handleClick = this.handleClick.bind(this);
-    this.showMoves = this.showMoves.bind(this);
-    this.hideMoves = this.hideMoves.bind(this);
+    this.highlightValidMoves = this.highlightValidMoves.bind(this);
+    this.unhighlightValidMoves = this.unhighlightValidMoves.bind(this);
 
     this.$board = $('.board')
-    this.getMoves().then(() => this.showMoveable());
+    this.getAllMoves().then(() => this.highlightMoveablePieces());
 
     $('#start-btn').click(() => this.startGame());
-    $('.cell').hover(e => this.showMoves(e), e => this.hideMoves(e));
     $('.board').click(e => this.handleClick(e));
+    $('.cell').hover(
+      e => this.highlightValidMoves(e),
+      e => this.unhighlightValidMoves(e)
+    );
   }
 
   startGame() {
     $.post('/chess/new').then(pieces => {
-      this.setBoard(pieces);
-      this.getMoves().then(() => this.showMoveable());
+      this.setupBoard(pieces);
+      this.getAllMoves().then(() => this.highlightMoveablePieces());
     });
   }
 
-  setBoard(pieces) {
+  setupBoard(pieces) {
     $('.cell').html(' ')
     $('.selected').toggleClass('selected');
     Object.keys(pieces).forEach(id => {
@@ -40,43 +43,68 @@ class Board {
     });
   }
 
-  getMoves() {
+  getAllMoves() {
     return $.get('/chess/moves').then(moves => {
-      this.moves = moves;
+      this.saveMoves(moves);
     });
   }
 
-  showMoveable() {
+  saveMoves(moves) {
+    this.moves = moves;
+  }
+
+  highlightMoveablePieces() {
     $('.moveable').toggleClass('moveable', false);
-    Object.keys(this.moves.current).forEach(id => {
+    Object.keys(this.moves.player).forEach(id => {
       $(`#${id}`).toggleClass('moveable', true);
     });
   }
 
-  showMoves(e) {
-    const $piece = $(e.target);
-    if (this.getSelected() || !$piece.hasClass('moveable')) {
-      return;
-    }
-    this.showPieceMoves($piece);
-  }
-
-  hideMoves(e) {
+  highlightValidMoves(e) {
+    const $cell = $(e.target);
     if (this.getSelected()) {
-      return;
+      if ($cell.hasClass('unsafe')) {
+        this.highlightThreatMoves($cell)
+      }
+    } else if ($cell.hasClass('moveable')) {
+      this.tagValidMoves($cell);
     }
-    $('.cell').toggleClass('valid', false);
   }
 
-  showPieceMoves($piece) {
+  tagValidMoves($piece) {
     $('.cell').toggleClass('valid', false);
     this.getPieceMoves($piece).forEach(coordinate => {
-      $(`#${coordinate}`).toggleClass('valid', true);
+      const $cell = $(`#${coordinate}`);
+      const unsafe = Boolean(this.moves.threats[coordinate]);
+      $cell.toggleClass('valid', true);
+      $cell.toggleClass('unsafe', unsafe);
     });
   }
 
+  unhighlightValidMoves() {
+    if (this.getSelected()) {
+      this.unhighlightThreatMoves()
+    } else {
+      $('.cell').toggleClass('valid', false);
+    }
+  }
+
+  highlightThreatMoves($cell) {
+    $('.cell').toggleClass('threat', false);
+    const id = $cell.attr('id');
+    const threats = this.moves.threats[id];
+    threats && threats.forEach(pos => {
+      const $cell = $(`#${pos}`);
+      $cell.toggleClass('threat', true);
+    });
+  }
+
+  unhighlightThreatMoves() {
+    $('.cell').toggleClass('threat', false);
+  }
+
   getPieceMoves($piece) {
-    return this.moves.current[$piece.attr('id')] || [];
+    return this.moves.player[$piece.attr('id')] || [];
   }
 
   getSelected() {
@@ -99,15 +127,14 @@ class Board {
   }
 
   startMove($piece) {
-    this.showPieceMoves($piece);
     $('.selected').toggleClass('selected', false);
     $piece.toggleClass('selected', true);
+    this.tagValidMoves($piece);
   }
 
   cancelMove() {
     $('.selected').toggleClass('selected', false);
     $('.valid').toggleClass('valid', false);
-    this.setMoveable();
   }
 
   finishMove($to) {
@@ -115,8 +142,8 @@ class Board {
     const from = $from.attr('id');
     const to = $to.attr('id');
     $.post('/chess/moves', { from, to }).then(moves => {
-      this.moves = moves
-      this.showMoveable();
+      this.saveMoves(moves);
+      this.highlightMoveablePieces();
       $('.selected').toggleClass('selected', false);
       $('.valid').toggleClass('valid', false);
       $to.html($from.html());

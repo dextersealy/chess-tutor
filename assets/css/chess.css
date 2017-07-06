@@ -41,21 +41,36 @@ li {
   text-align: center;
 }
 
-.moveable {
-  background-color: LemonChiffon;
-}
-
-.valid {
-  background-color: #cce6ff;
-}
-
-.selected, .moveable:hover, .valid:hover {
-  background-color: #66b3ff;
+.selected, .moveable, .valid {
   cursor: pointer;
 }
 
-.selected, .valid:hover {
+.selected {
   padding: 9px 9px 9px 8px;
   border: 1px solid black;
   border-right-width: 2px;
+}
+
+.threat {
+  color: red;
+}
+
+.moveable {
+  background-color: LemonChiffon; /* light yellow */
+}
+.selected, .moveable:hover {
+  background-color: #fff280; /* yellow */
+}
+
+.valid {
+  background-color: #98fb98; /* light green */
+}
+.valid:hover {
+  background-color: #6bfa6b; /* green */
+}
+.valid.unsafe {
+  background-color: LightPink;
+}
+.valid.unsafe:hover {
+  background-color: #ff667d; /* pink */
 }

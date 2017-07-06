@@ -20,8 +20,7 @@ class ChessController < ControllerBase
   end
 
   def move
-    game.move(pos_from_coordinate(params[:from]),
-      pos_from_coordinate(params[:to]))
+    game.move(decode(params[:from]), decode(params[:to]))
     render json: get_moves
   end
 
@@ -48,7 +47,7 @@ class ChessController < ControllerBase
 
     pieces = board.get_pieces(:white).concat(board.get_pieces(:black))
     pieces.each do |piece|
-      id = coordinate_from_pos(piece.current_pos)
+      id = encode(piece.current_pos)
       result[id] = piece.to_html
     end
 
@@ -56,32 +55,49 @@ class ChessController < ControllerBase
   end
 
   def get_moves
-    { current: get_player_moves(game.current_player),
-      next: get_player_moves(game.next_player) }
+    player_moves = get_player_moves
+    threats = get_threats(player_moves)
+    { player: encode_moves(player_moves), threats: encode_moves(threats) }
   end
 
-  def get_player_moves(player)
-    result = {}
+  def get_player_moves
+    pieces = board.get_pieces(game.current_player)
+    result = pieces.reduce(Hash.new([])) do |accumulator, piece|
+      accumulator[piece.current_pos] = piece.valid_moves
+      accumulator
+    end
+    result.reject { |k, v| v.empty? }
+  end
 
-    board.get_pieces(player).each do |piece|
-      moves = get_piece_moves(piece)
-      next if moves.empty?
-      result[coordinate_from_pos(piece.current_pos)] = moves
+  def encode_moves(moves)
+    result = Hash.new([])
+    moves.each do |key, value|
+      result[encode(key)] = value.map { |pos| encode(pos) }
+    end
+    result
+  end
+
+  def get_threats(player_moves)
+    result = Hash.new([])
+
+    player_moves.each do |start_pos, moves|
+      moves.map do |end_pos|
+        threats = board.get_threats(start_pos, end_pos)
+        threats.each do |piece|
+          result[end_pos] += [piece.current_pos]
+        end
+      end
     end
 
     result
   end
 
-  def get_piece_moves(piece)
-    piece.valid_moves.map { |pos| coordinate_from_pos(pos) }
-  end
-
-  def coordinate_from_pos(pos)
+  def encode(pos)
     row, col = pos
     "ABCDEFGH"[col] + "87654321"[row]
   end
 
-  def pos_from_coordinate(coord)
+  def decode(coord)
     col = "ABCDEFGH".index(coord[0])
     row = "87654321".index(coord[1])
     [row, col]

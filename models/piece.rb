@@ -42,17 +42,17 @@ class Piece
   end
 
   def valid_moves
+    moves.select { |pos| valid_move?(pos) }
+  end
+
+  private
+
+  def valid_move?(pos)
     original_pos = current_pos
-    result = []
-    begin
-      moves.each do |pos|
-        current_pos = pos
-        result << pos unless board.in_check?(color)
-      end
-    ensure
-      current_pos = original_pos
-    end
-    result
+    current_pos = pos
+    valid = !board.in_check?(color)
+    current_pos = original_pos
+    valid
   end
 
 end
