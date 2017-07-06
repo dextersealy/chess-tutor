@@ -55,13 +55,15 @@ class ChessController < ControllerBase
   end
 
   def get_moves
-    player_moves = get_player_moves
-    threats = get_threats(player_moves)
-    { player: encode_moves(player_moves), threats: encode_moves(threats) }
+    player = get_player_moves(game.current_player)
+    opponent = get_player_moves(game.next_player)
+    threats = get_threats(player)
+    { player: encode_moves(player), opponent: encode_moves(opponent),
+      threats: encode_moves(threats) }
   end
 
-  def get_player_moves
-    pieces = board.get_pieces(game.current_player)
+  def get_player_moves(player)
+    pieces = board.get_pieces(player)
     result = pieces.reduce(Hash.new([])) do |accumulator, piece|
       accumulator[piece.current_pos] = piece.valid_moves
       accumulator

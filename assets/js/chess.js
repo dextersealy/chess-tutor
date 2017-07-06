@@ -18,7 +18,7 @@ class Board {
     this.unhighlightValidMoves = this.unhighlightValidMoves.bind(this);
 
     this.$board = $('.board')
-    this.getAllMoves().then(() => this.highlightMoveablePieces());
+    this.getAllMoves().then(() => this.highlightPlayerMoves());
 
     $('#start-btn').click(() => this.startGame());
     $('.board').click(e => this.handleClick(e));
@@ -31,7 +31,7 @@ class Board {
   startGame() {
     $.post('/chess/new').then(pieces => {
       this.setupBoard(pieces);
-      this.getAllMoves().then(() => this.highlightMoveablePieces());
+      this.getAllMoves().then(() => this.highlightPlayerMoves());
     });
   }
 
@@ -53,11 +53,32 @@ class Board {
     this.moves = moves;
   }
 
-  highlightMoveablePieces() {
+  highlightPlayerMoves() {
+    $('.selected').toggleClass('selected', false);
+    $('.valid').toggleClass('valid', false);
+    $('.threat').toggleClass('threat', false);
+    $('.threatened').toggleClass('threatened', false);
     $('.moveable').toggleClass('moveable', false);
     Object.keys(this.moves.player).forEach(id => {
       $(`#${id}`).toggleClass('moveable', true);
     });
+    this.highlightThreatenedPieces();
+  }
+
+  highlightThreatenedPieces() {
+    $('.threatened').toggleClass('threatened', false);
+    Object.keys(this.moves.opponent).forEach(id => {
+      this.moves.opponent[id].forEach(pos => {
+        const $cell = $(`#${pos}`);
+        if ($cell.html() !== ' ') {
+          $cell.toggleClass('threatened', true);
+        }
+      });
+    });
+  }
+
+  unhightlightThreatendPieces() {
+    $('.threatened').toggleClass('threatened', false);
   }
 
   highlightValidMoves(e) {
@@ -143,9 +164,7 @@ class Board {
     const to = $to.attr('id');
     $.post('/chess/moves', { from, to }).then(moves => {
       this.saveMoves(moves);
-      this.highlightMoveablePieces();
-      $('.selected').toggleClass('selected', false);
-      $('.valid').toggleClass('valid', false);
+      this.highlightPlayerMoves();
       $to.html($from.html());
       $from.html(' ');
     });

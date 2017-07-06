@@ -58,6 +58,10 @@ li {
 .moveable {
   background-color: LemonChiffon; /* light yellow */
 }
+
+.moveable.threatened {
+  background: linear-gradient(to bottom right, LemonChiffon, LightPink);
+}
 .selected, .moveable:hover {
   background-color: #fff280; /* yellow */
 }
@@ -68,9 +72,9 @@ li {
 .valid:hover {
   background-color: #6bfa6b; /* green */
 }
-.valid.unsafe {
+.valid.unsafe, .threatened {
   background-color: LightPink;
 }
-.valid.unsafe:hover {
+.valid .unsafe:hover {
   background-color: #ff667d; /* pink */
 }
