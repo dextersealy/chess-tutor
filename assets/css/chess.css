@@ -22,17 +22,12 @@ ul, li, div {
 
 ul {
   display: flex;
-  border-top: 1px solid black;
-  border-left: 1px solid black;
 }
 
-ul:last-child {
-  border-bottom: 1px solid black;
-}
-
-li {
+.cell {
   display: block;
   list-style: none;
+  border-top: 1px solid black;
   border-right: 1px solid black;
   padding: 10px;
   width: 60px;
@@ -41,13 +36,28 @@ li {
   text-align: center;
 }
 
+.row-head {
+  border-top: 0;
+  border-bottom: 0;
+}
+
+.col-head {
+  border-bottom: 0;
+  border-right: 0;
+}
+
+.gap {
+  border: 0;
+}
+
 .selected, .moveable, .valid {
   cursor: pointer;
 }
 
 .selected {
-  padding: 9px 9px 9px 8px;
+  padding: 9px 9px 9px 9px;
   border: 1px solid black;
+  border-top-width: 2px;
   border-right-width: 2px;
 }
 
