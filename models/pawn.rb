@@ -13,20 +13,35 @@ class Pawn < Piece
   end
 
   def moves
-     result = super
-
-     possible_moves = []
-     if color == :black
-       [:sw, :se].map { |dir| possible_moves.concat(get_moves(dir, current_pos)) }
-       if current_pos.first == 1
-         result << add(current_pos, [2, 0])
-       end
-     else
-       [:nw, :ne].map { |dir| possible_moves.concat(get_moves(dir, current_pos)) }
-       if current_pos.first == 6
-         result << add(current_pos, [-2, 0])
-       end
-     end
-     result.concat(possible_moves.select { |pos| board.occupied?(pos) })
+    step_moves + capture_moves
   end
+
+  private
+
+  def step_moves
+    result = []
+
+    dir = (color == :black) ? :down : :up
+    pos = current_pos
+    2.times do
+      pos = add(pos, Piece::MOVES[dir])
+      break if board.occupied?(pos) || !board.in_bounds?(pos)
+      result << pos
+      break unless first_move?
+    end
+
+    result
+  end
+
+  def capture_moves
+    dirs = (color == :black) ? [:sw, :se] : [:nw, :ne]
+    result = dirs.reduce([]) { |arr, dir| arr.concat(get_moves(dir, current_pos)) }
+    result.select { |pos| board.occupied?(pos) }
+  end
+
+  def first_move?
+    ((color == :black) && current_pos.first == 1) ||
+    ((color == :white) && current_pos.first == 6)
+  end
+
 end
