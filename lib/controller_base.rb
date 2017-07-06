@@ -11,22 +11,33 @@ class ControllerBase
   def initialize(req, res, route_params = {})
     @req, @res = req, res
     @params = route_params.merge(req.params)
+    @params.keys.each {|k| @params[k.to_sym] = @params[k]}
   end
 
   # Use ERB and binding to render templates
 
-  def render(template_name)
+  def render(arg)
+    return render_template arg unless arg.is_a?(Hash)
+    render_json arg[:json] if arg[:json]
+  end
+
+  def render_template(template_name)
     app_template = ERB.new(File.read('views/application.html.erb'))
 
     snake_case_class_name = self.class.to_s.underscore
     template_path = "views/#{snake_case_class_name}/#{template_name}.html.erb"
     action_template = File.read(template_path)
-    
+
     html = app_template.result(self.get_binding {
       ERB.new(action_template).result(binding)
     })
 
+    html.gsub!(/[\r\n]+/, "\n").gsub(/ +/, ' ')
     render_content(html, 'text/html')
+  end
+
+  def render_json(obj)
+    render_content(obj.to_json, 'application/json')
   end
 
   def get_binding
@@ -83,8 +94,6 @@ class ControllerBase
   def invoke_action(name)
     if (protect_from_forgery? && @req.request_method != 'GET')
       check_authenticity_token
-    else
-      form_authenticity_token
     end
 
     send(name)

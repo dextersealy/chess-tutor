@@ -1,0 +1,17 @@
+<h1>Hello World!</h1>
+<button id="start-btn">Start Game </button>
+
+<div class='board'>
+  <% 8.times do |row| %>
+  <% board_color = row.even? ? 'white' : 'black' %>
+    <ul>
+      <% 8.times do |col| %>
+        <% pos = [row, col] %>
+        <% piece = @board[pos] %>
+        <li id="<%=@board.coordinate_from_pos(pos) %>"
+          class="cell <%="board-#{board_color}"%>"><%= piece.to_html %></li>
+        <% board_color = board_color == 'white' ? 'black' : 'white'%>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

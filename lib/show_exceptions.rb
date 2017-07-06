@@ -1,5 +1,4 @@
 require 'erb'
-require 'byebug'
 
 # This middleware traps exceptions and renders a stack trace
 
