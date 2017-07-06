@@ -10,11 +10,11 @@ class Session
   end
 
   def [](key)
-    @session_cookies[key]
+    @session_cookies[key.to_s]
   end
 
   def []=(key, val)
-    @session_cookies[key] = val
+    @session_cookies[key.to_s] = val
   end
 
   def store_session(res)

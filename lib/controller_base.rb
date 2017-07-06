@@ -64,9 +64,6 @@ class ControllerBase
     raise 'cannot render or redirect more that once' if already_built_response?
     @already_built_response = true
 
-    session.store_session(res)
-    flash.store_flash(res)
-
     res['Content-Type'] = content_type
     res.write(content)
   end
@@ -96,7 +93,19 @@ class ControllerBase
       check_authenticity_token
     end
 
+    @@before_actions.map do |filter, options|
+      invoke_filter(filter, name, options)
+    end
+
     send(name)
+
+    @@after_actions.map do |filter, options|
+      invoke_filter(filter, name, options)
+    end
+
+    session.store_session(res)
+    flash.store_flash(res)
+
     render(name) unless already_built_response?
   end
 
@@ -126,8 +135,24 @@ class ControllerBase
     @@protect_from_forgery
   end
 
+  def self.before_action(name, options)
+    @@before_actions << [ name, options ]
+  end
+
+  def self.after_action(name, options)
+    @@after_actions << [ name, options ]
+  end
+
+  def invoke_filter(filter, action, options)
+    return unless !options[:only] || options[:only].include?(action.to_sym)
+    return if options[:except] && options[:except].include?(action.to_sym)
+    send(filter)
+  end
+
   private
 
   @@protect_from_forgery = false
+  @@before_actions = []
+  @@after_actions = []
 
 end

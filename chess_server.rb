@@ -7,9 +7,8 @@ router = Router.new
 router.draw do
   get Regexp.new("^/chess$"), ChessController, :index
   post Regexp.new("^/chess/new$"), ChessController, :new
-  get Regexp.new("^/chess/moves$"), ChessController, :moveable
+  get Regexp.new("^/chess/moves$"), ChessController, :moves
   post Regexp.new("^/chess/moves$"), ChessController, :move
-  get Regexp.new("^/chess/moves/(?<coord>[A-Z]\\d)$"), ChessController, :moves
 end
 
 app = Proc.new do |env|
@@ -25,6 +24,6 @@ app = Rack::Builder.new do
 end.to_app
 
 Rack::Server.start(
- app: app,
- Port: 3000
+  app: app,
+  Port: 3000
 )

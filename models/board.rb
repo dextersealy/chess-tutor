@@ -17,33 +17,21 @@ class Board
   attr_accessor :grid
 
   PIECES = [
-    Object.const_get('Rook'),
-    Object.const_get('Knight'),
-    Object.const_get('Bishop'),
-    Object.const_get('Queen'),
-    Object.const_get('King'),
-    Object.const_get('Bishop'),
-    Object.const_get('Knight'),
-    Object.const_get('Rook')
+    'Rook', 'Knight', 'Bishop', 'Queen', 'King', 'Bishop', 'Knight','Rook'
   ]
 
-  def initialize
+  def initialize(prev_state = nil)
+    restore_state(prev_state) if prev_state
+    return if @grid && @grid.flatten.length == 64;
+
     @grid = []
     grid << make_pieces(PIECES, :black, 0)
-    grid << make_pieces([Object.const_get('Pawn')] * 8, :black, 1)
+    grid << make_pieces(['Pawn'] * 8, :black, 1)
 
     4.times { @grid << Array.new(8) { NullPiece.instance } }
 
-    grid << make_pieces([Object.const_get('Pawn')] * 8, :white, 6)
+    grid << make_pieces(['Pawn'] * 8, :white, 6)
     grid << make_pieces(PIECES, :white, 7)
-  end
-
-  def make_pieces(factory_array, color, row)
-    factory_array.map.with_index do |factory, idx|
-      piece = factory.new(self, color)
-      piece.current_pos = [row, idx]
-      piece
-    end
   end
 
   def move_piece(start_pos, end_pos)
@@ -68,7 +56,7 @@ class Board
   end
 
   def in_bounds?(pos)
-    pos.all? { |coord| coord.between?(0,7) }
+    pos.all? { |coord| coord.between?(0, 7) }
   end
 
   def occupied?(pos)
@@ -90,15 +78,9 @@ class Board
     grid.flatten.select { |piece| piece.color == color }
   end
 
-  def coordinate_from_pos(pos)
-    row, col = pos
-    "ABCDEFGH"[col] + "87654321"[row]
-  end
-
-  def pos_from_coordinate(coord)
-    col = "ABCDEFGH".index(coord[0])
-    row = "87654321".index(coord[1])
-    [row, col]
+  def save_state
+    pieces = get_pieces(:white).concat(get_pieces(:black))
+    pieces.map { |piece| [piece.class.name, piece.color, piece.current_pos] }
   end
 
   private
@@ -117,4 +99,27 @@ class Board
     false
   end
 
+  def restore_state(state)
+    return if state.empty?
+
+    @grid = []
+    8.times { @grid << Array.new(8) { NullPiece.instance } }
+
+    state.each do |item|
+      piece = make_piece(*item)
+      self[piece.current_pos] = piece
+    end
+  end
+
+  def make_pieces(factory_array, color, row)
+    factory_array.map.with_index do |class_, idx|
+      make_piece(class_, color.to_sym, [row, idx])
+    end
+  end
+
+  def make_piece(classname, color, pos)
+    piece = Object.const_get(classname).new(self, color.to_sym)
+    piece.current_pos = pos
+    piece
+  end
 end

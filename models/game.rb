@@ -1,66 +1,44 @@
 require_relative 'board.rb'
-require_relative 'cursor.rb'
-require_relative 'display.rb'
-require_relative 'player.rb'
 
 class Game
-  attr_accessor :board, :player1, :player2, :display
+  attr_accessor :board, :current_player
 
-   def initialize
-     @board = Board.new
-     @current_player = :white
-     @display = Display.new(@board)
-     @player1 = Player.new(@board, @display, :white)
-     @player2 = Player.new(@board, @display, :black)
-   end
+  def initialize(prev_state = {})
+    if prev_state && prev_state['version'] == VERSION
+      @board = Board.new(prev_state['board'])
+      @current_player = prev_state['current_player'].to_sym
+    else
+      @board = Board.new
+      @current_player = :white
+    end
 
-   def reset
-     @board = Board.new
-     @current_player = :white
-   end
-
-   def run
-     until over?
-       @player1.play_turn
-       break if over?
-       @player2.play_turn
-     end
-     display.render
-     puts "Checkmate!"
-     puts "#{winner.color} wins!"
-
-   end
-
-   def winner
-     return player1 if board.checkmate?(:black)
-     return player2 if board.checkmate?(:white)
-     nil
-   end
-
-   def over?
-    board.checkmate?(:white) || board.checkmate?(:black)
-   end
-
-   def move(from, to)
-     board.move_piece(from, to)
-     @current_player = next_player
-   end
-
-   def next_player
-     { white: :black, black: :white }[@current_player]
-   end
-
-   def moveable
-     pieces = @board.get_pieces(@current_player)
-     pieces = pieces.reject { |piece| piece.valid_moves.empty? }
-     pieces.map { |piece| board.coordinate_from_pos(piece.current_pos) }
   end
 
-end
+  def move(from, to)
+     board.move_piece(from, to)
+     @current_player = next_player
+  end
 
-if __FILE__ == $PROGRAM_NAME
+  def over?
+    board.checkmate?(:white) || board.checkmate?(:black)
+  end
 
-  g = Game.new
-  g.run
+  def winner
+    return :black if board.checkmate?(:black)
+    return :white if board.checkmate?(:white)
+    nil
+  end
 
+  def save_state
+    { 'version' => VERSION, 'board' => @board.save_state,
+      'current_player' => current_player }
+  end
+
+  def next_player
+    { white: :black, black: :white }[@current_player]
+  end
+
+  private
+
+  VERSION = 1
 end

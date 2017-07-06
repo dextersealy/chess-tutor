@@ -18,24 +18,38 @@ class Board {
     this.hideMoves = this.hideMoves.bind(this);
 
     this.$board = $('.board')
+    this.getMoves().then(() => this.showMoveable());
+
     $('#start-btn').click(() => this.startGame());
     $('.cell').hover(e => this.showMoves(e), e => this.hideMoves(e));
     $('.board').click(e => this.handleClick(e));
-
   }
 
   startGame() {
     $.post('/chess/new').then(pieces => {
-      this.setBoard(pieces)
-      this.getMoveable();
+      this.setBoard(pieces);
+      this.getMoves().then(() => this.showMoveable());
     });
   }
 
   setBoard(pieces) {
     $('.cell').html(' ')
     $('.selected').toggleClass('selected');
-    pieces.forEach(piece => {
-      $(`#${piece.id}`).html(piece.value)
+    Object.keys(pieces).forEach(id => {
+      $(`#${id}`).html(pieces[id])
+    });
+  }
+
+  getMoves() {
+    return $.get('/chess/moves').then(moves => {
+      this.moves = moves;
+    });
+  }
+
+  showMoveable() {
+    $('.moveable').toggleClass('moveable', false);
+    Object.keys(this.moves.current).forEach(id => {
+      $(`#${id}`).toggleClass('moveable', true);
     });
   }
 
@@ -44,28 +58,29 @@ class Board {
     if (this.getSelected() || !$piece.hasClass('moveable')) {
       return;
     }
+    this.showPieceMoves($piece);
+  }
 
-    $.get(`/chess/moves/${$piece.attr('id')}`).then(moves => {
-      this.setValidMoves(moves);
+  hideMoves(e) {
+    if (this.getSelected()) {
+      return;
+    }
+    $('.cell').toggleClass('valid', false);
+  }
+
+  showPieceMoves($piece) {
+    $('.cell').toggleClass('valid', false);
+    this.getPieceMoves($piece).forEach(coordinate => {
+      $(`#${coordinate}`).toggleClass('valid', true);
     });
   }
 
-  hideMoves() {
-    if (!this.getSelected()) {
-      this.setValidMoves([]);
-    }
+  getPieceMoves($piece) {
+    return this.moves.current[$piece.attr('id')] || [];
   }
 
   getSelected() {
     return $('.selected')[0];
-  }
-  getMoveable() {
-    $.get('/chess/moves').then(resp => this.setMoveable(resp));
-  }
-
-  setMoveable(ids) {
-    $('.moveable').toggleClass('moveable', false);
-    ids.map(id => $(`#${id}`).toggleClass('moveable', true));
   }
 
   handleClick(e) {
@@ -79,20 +94,14 @@ class Board {
     }
   }
 
-  isMoveInProgress() {
-    return Boolean($('.selected').length);
-  }
-
   validMove($piece) {
     return $piece.hasClass('valid');
   }
 
   startMove($piece) {
-    $.get(`/chess/moves/${$piece.attr('id')}`).then(resp => {
-      this.setValidMoves(resp);
-      $('.selected').toggleClass('selected', false);
-      $piece.toggleClass('selected', true);
-    });
+    this.showPieceMoves($piece);
+    $('.selected').toggleClass('selected', false);
+    $piece.toggleClass('selected', true);
   }
 
   cancelMove() {
@@ -101,21 +110,15 @@ class Board {
     this.setMoveable();
   }
 
-  setValidMoves(moves) {
-    $('.cell').toggleClass('valid', false);
-    moves.forEach(coordinate => {
-      $(`#${coordinate}`).toggleClass('valid', true);
-    });
-  }
-
   finishMove($to) {
     const $from = $('.selected')
     const from = $from.attr('id');
     const to = $to.attr('id');
-    $.post('/chess/moves', { from, to }).then(resp => {
+    $.post('/chess/moves', { from, to }).then(moves => {
+      this.moves = moves
+      this.showMoveable();
       $('.selected').toggleClass('selected', false);
       $('.valid').toggleClass('valid', false);
-      this.setMoveable(resp);
       $to.html($from.html());
       $from.html(' ');
     });
