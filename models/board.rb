@@ -23,7 +23,9 @@ class Board
     restore_state(prev_state) if prev_state
     return if @grid && @grid.flatten.length == 64;
 
+    @undo = nil
     @grid = []
+
     grid << make_pieces(PIECES, :black, 0)
     grid << make_pieces(['Pawn'] * 8, :black, 1)
 
@@ -37,11 +39,23 @@ class Board
     raise InvalidPosition.new unless [start_pos, end_pos].all? { |pos| in_bounds?(pos) }
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
+    @undo = [start_pos, end_pos, self[end_pos]]
+
     piece = self[start_pos]
     self[end_pos] = piece
     piece.current_pos = end_pos
 
     self[start_pos] = NullPiece.instance
+  end
+
+  def undo_move
+    return unless @undo
+    start_pos, end_pos, piece = @undo
+    self[start_pos] = self[end_pos]
+    self[start_pos].current_pos = start_pos
+    self[end_pos] = piece
+    self[end_pos].current_pos = end_pos
+    @undo = nil
   end
 
   def [](pos)
@@ -83,15 +97,18 @@ class Board
   end
 
   def get_threats(start_pos, end_pos)
-    end_piece = self[end_pos]
     move_piece(start_pos, end_pos)
+    threats = grid.flatten.each.select { |piece| piece.moves.include?(end_pos) }
+    undo_move
+    threats
+  end
 
-    result = grid.flatten.each.select { |piece| piece.moves.include?(end_pos) }
-
-    self[start_pos] = self[end_pos]
-    self[start_pos].current_pos = start_pos
-    self[end_pos] = end_piece
-    result
+  def valid_move?(start_pos, end_pos)
+    color = self[start_pos].color
+    move_piece(start_pos, end_pos)
+    valid = !in_check?(color)
+    undo_move
+    valid
   end
 
   private

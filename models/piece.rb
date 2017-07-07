@@ -48,11 +48,7 @@ class Piece
   private
 
   def valid_move?(pos)
-    original_pos = current_pos
-    current_pos = pos
-    valid = !board.in_check?(color)
-    current_pos = original_pos
-    valid
+    board.valid_move?(current_pos, pos)
   end
 
 end
