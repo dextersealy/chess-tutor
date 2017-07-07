@@ -1,4 +1,6 @@
-ul, li, div {
+ul, li, div, h1, h2,
+section, header, footer, sidebar, subhead,
+button {
   margin: 0;
   padding: 0;
   border: 0;
@@ -8,12 +10,67 @@ ul, li, div {
   box-sizing: border-box;
 }
 
-.board {
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  width: 80%;
+  margin: 0 auto;
+  background-color: #F5F5F5;
+}
+
+header {
+  background-color: #076390;
+  padding: 20px;
+}
+
+footer {
+  background-color: #FFA741;
+  padding: 20px;
+}
+
+h1 {
+  color: white;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+h2 {
+  color: white;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 10px;
+  background-color: #076390;
+}
+
+content {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
   margin: 20px auto;
-  background: white;
+}
+
+nav {
+  background-color: #E37A00;
+  padding: 10px;
+}
+
+sidebar {
+  background-color: #FFA741;
+  width: 200px;
+  flex-basis: 1;
+  margin-left: 20px;
+}
+
+#start-btn {
+  font-weight: bold;
+  background: #076390;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#start-btn:hover {
+  background-color: #1876A3;
 }
 
 .board-black {

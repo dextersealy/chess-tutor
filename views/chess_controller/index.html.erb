@@ -1,24 +1,36 @@
-<h1>Welcome to Chess Tutor!</h1>
-<button id="start-btn">Start Game </button>
-
-<div class='board'>
-  <% 8.times do |row| %>
-    <% board_color = row.even? ? 'white' : 'black' %>
+<header>
+  <h1>Chess Tutor</h1>
+</header>
+<content>
+  <nav>
+    <button id='start-btn'>Start Over</button>
+  </nav>
+  <board id='board'>
+    <% 8.times do |row| %>
+      <% board_color = row.even? ? 'white' : 'black' %>
+      <ul>
+        <li class='cell row-head'><%= "87654321"[row] %></li>
+        <% 8.times do |col| %>
+          <% pos = [row, col] %>
+          <% piece = @board[pos] %>
+          <li id="<%= encode(pos) %>"
+            class="cell <%="board-#{board_color}"%>"><%= piece.to_html %></li>
+          <% board_color = board_color == 'white' ? 'black' : 'white'%>
+        <% end %>
+      </ul>
+    <% end %>
     <ul>
-      <li class='cell row-head'><%= "87654321"[row] %></li>
+      <li class='cell gap'/>
       <% 8.times do |col| %>
-        <% pos = [row, col] %>
-        <% piece = @board[pos] %>
-        <li id="<%= encode(pos) %>"
-          class="cell <%="board-#{board_color}"%>"><%= piece.to_html %></li>
-        <% board_color = board_color == 'white' ? 'black' : 'white'%>
+        <li class='cell col-head'><%= "ABCDEFGH"[col] %></li>
       <% end %>
     </ul>
-  <% end %>
-  <ul>
-    <li class='cell gap'/>
-    <% 8.times do |col| %>
-      <li class='cell col-head'><%= "ABCDEFGH"[col] %></li>
-    <% end %>
-  </ul>
-</div>
+  </board>
+  <sidebar>
+    <subhead>
+      <h2>Hints</h2>
+    </subhead>
+  </sidebar>
+</content>
+<footer>
+</footer>
