@@ -48,7 +48,7 @@ class Piece
   private
 
   def valid_move?(pos)
-    board.valid_move?(current_pos, pos)
+    board[pos].color != color && board.valid_move?(current_pos, pos)
   end
 
 end

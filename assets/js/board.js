@@ -1,19 +1,14 @@
 class Board {
   constructor() {
     this.handleClick = this.handleClick.bind(this);
-    this.highlightValidMoves = this.highlightValidMoves.bind(this);
-    this.unhighlightValidMoves = this.unhighlightValidMoves.bind(this);
+    this.handleHoverIn = this.handleHoverIn.bind(this);
+    this.handleHoverOut = this.handleHoverOut.bind(this);
 
     $('#board').click(e => this.handleClick(e));
-    $('.cell').hover(
-      e => this.highlightValidMoves(e),
-      e => this.unhighlightValidMoves(e)
-    );
+    $('.cell').hover(e => this.handleHoverIn(e), e => this.handleHoverOut(e));
   }
 
-  init() {
-    this.getAllMoves().then(() => this.highlightPlayerMoves());
-  }
+  //  Start a new game
 
   reset() {
     $.post('/chess/new').then(pieces => {
@@ -22,122 +17,135 @@ class Board {
     });
   }
 
+  //  Arrange the pieces on the board
+
   setup(pieces) {
     $('.cell').html(' ')
     $('.selected').toggleClass('selected');
-    Object.keys(pieces).forEach(id => {
-      $(`#${id}`).html(pieces[id])
+    Object.keys(pieces).forEach(loc => {
+      $(`#${loc}`).html(pieces[loc])
     });
   }
 
-  getAllMoves() {
+  //  Display the board status
+
+  init() {
+    this.getNextMoves().then(() => this.highlightNextMoves());
+  }
+
+  //  Retrieve the available moves
+
+  getNextMoves() {
     return $.get('/chess/moves').then(moves => {
-      this.saveMoves(moves);
+      this.moves = moves;
     });
   }
 
-  saveMoves(moves) {
-    this.moves = moves;
-  }
+  //  Highlight the available moves
 
-  highlightPlayerMoves() {
+  highlightNextMoves() {
     $('.selected').toggleClass('selected', false);
     $('.valid').toggleClass('valid', false);
     $('.threat').toggleClass('threat', false);
-    $('.threatened').toggleClass('threatened', false);
-    $('.moveable').toggleClass('moveable', false);
-    Object.keys(this.moves.player).forEach(id => {
-      $(`#${id}`).toggleClass('moveable', true);
-    });
+    this.highlightMoveablePieces();
     this.highlightThreatenedPieces();
+  }
+
+  highlightMoveablePieces() {
+    $('.moveable').toggleClass('moveable', false);
+    Object.keys(this.moves.player).forEach(loc => {
+      const moveable = Boolean(this.moves.player[loc].length);
+      $(`#${loc}`).toggleClass('moveable', moveable);
+    });
   }
 
   highlightThreatenedPieces() {
     $('.threatened').toggleClass('threatened', false);
-    Object.keys(this.moves.opponent).forEach(id => {
-      this.moves.opponent[id].forEach(pos => {
-        const $cell = $(`#${pos}`);
-        if ($cell.html() !== ' ') {
-          $cell.toggleClass('threatened', true);
-        }
-      });
-    });
-  }
-
-  unhightlightThreatendPieces() {
-    $('.threatened').toggleClass('threatened', false);
-  }
-
-  highlightValidMoves(e) {
-    const $cell = $(e.target);
-    if (this.getSelected()) {
-      if ($cell.hasClass('unsafe')) {
-        this.highlightThreatMoves($cell)
+    Object.keys(this.moves.threats).forEach(loc => {
+      const $cell = $(`#${loc}`);
+      if (this.isPlayerPiece($cell)) {
+        $cell.toggleClass('threatened', true);
       }
-    } else if ($cell.hasClass('moveable')) {
-      this.tagValidMoves($cell);
-    }
-  }
-
-  tagValidMoves($piece) {
-    $('.cell').toggleClass('valid', false);
-    this.getPieceMoves($piece).forEach(coordinate => {
-      const $cell = $(`#${coordinate}`);
-      const unsafe = Boolean(this.moves.threats[coordinate]);
-      $cell.toggleClass('valid', true);
-      $cell.toggleClass('unsafe', unsafe);
     });
   }
 
-  unhighlightValidMoves() {
-    if (this.getSelected()) {
-      this.unhighlightThreatMoves()
-    } else {
+  // Hover actions
+
+  handleHoverIn(e) {
+    const $cell = $(e.target);
+    this.highlightThreats($cell)
+    if (!this.isPieceSelected()) {
+      this.highlightMoves($cell);
+    }
+  }
+
+  handleHoverOut() {
+    this.unhighlightThreats()
+    if (!this.isPieceSelected()) {
+      this.unhighlightMoves();
+    }
+  }
+
+  //  Highlight available moves
+
+  highlightMoves($piece) {
+    if (this.isMoveable($piece)) {
       $('.cell').toggleClass('valid', false);
+      $('.cell').toggleClass('unsafe', false);
+      this.getMoves($piece).forEach(loc => {
+        const $cell = $(`#${loc}`);
+        $cell.toggleClass('valid', true);
+        $cell.toggleClass('unsafe', Boolean(this.moves.threats[loc]));
+      });
     }
   }
 
-  highlightThreatMoves($cell) {
+  getMoves($piece) {
+    return this.moves.player[this.getLoc($piece)] || [];
+  }
+
+  unhighlightMoves() {
+    $('.cell').toggleClass('valid', false);
+  }
+
+  //  Highlight threatenING pieces
+
+  highlightThreats($cell) {
+    if (this.hasThreat($cell)) {
+      $('.cell').toggleClass('threat', false);
+      const threats = this.moves.threats[this.getLoc($cell)];
+      threats && threats.forEach(loc => {
+        $(`#${loc}`).toggleClass('threat', true);
+      });
+    }
+  }
+
+  hasThreat($cell) {
+    return this.isThreatened($cell) || (this.isPieceSelected() &&
+      this.isUnsafe($cell));
+  }
+
+  unhighlightThreats() {
     $('.cell').toggleClass('threat', false);
-    const id = $cell.attr('id');
-    const threats = this.moves.threats[id];
-    threats && threats.forEach(pos => {
-      const $cell = $(`#${pos}`);
-      $cell.toggleClass('threat', true);
-    });
   }
 
-  unhighlightThreatMoves() {
-    $('.cell').toggleClass('threat', false);
-  }
-
-  getPieceMoves($piece) {
-    return this.moves.player[$piece.attr('id')] || [];
-  }
-
-  getSelected() {
-    return $('.selected')[0];
-  }
+  //  Move actions
 
   handleClick(e) {
-    const $piece = $(e.target);
-    if ($piece.attr('id') === $('.selected').attr('id')) {
+    const $cell = $(e.target);
+    if (this.getLoc($cell) === this.getSelectedLoc()) {
       this.cancelMove();
-    } else if (canMove($piece)) {
-      this.startMove($piece);
-    } else if (this.validMove($piece)) {
-      this.finishMove($piece);
+    } else if (canMove($cell)) {
+      this.startMove($cell);
+    } else if (this.isValidMove($cell)) {
+      this.finishMove($cell);
     }
-  }
-
-  validMove($piece) {
-    return $piece.hasClass('valid');
   }
 
   startMove($piece) {
     $('.selected').toggleClass('selected', false);
     $piece.toggleClass('selected', true);
-    this.tagValidMoves($piece);
+    this.highlightMoves($piece);
   }
 
   cancelMove() {
@@ -152,8 +160,41 @@ class Board {
     $.post('/chess/moves', { from, to }).then(moves => {
       $to.html($from.html());
       $from.html(' ');
-      this.saveMoves(moves);
-      this.highlightPlayerMoves();
+      this.moves = moves;
+      this.highlightNextMoves();
     });
   }
+
+  getLoc($cell) {
+    return $cell.attr('id');
+  }
+
+  getSelectedLoc() {
+    return $('.selected').attr('id');
+  }
+
+  isPieceSelected() {
+    return $('.selected').length > 0;
+  }
+
+  isPlayerPiece($cell) {
+    return Boolean(this.moves.player[this.getLoc($cell)]);
+  }
+
+  isUnsafe($cell) {
+    return $cell.hasClass('unsafe');
+  }
+
+  isThreatened($cell) {
+    return $cell.hasClass('threatened');
+  }
+
+  isMoveable($cell) {
+    return $cell.hasClass('moveable');
+  }
+
+  isValidMove($cell) {
+    return $cell.hasClass('valid');
+  }
+
 }

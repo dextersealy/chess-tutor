@@ -121,6 +121,10 @@ ul {
   color: red;
 }
 
+.threatened {
+  background-color: Pink;
+}
+
 .moveable {
   background-color: LemonChiffon; /* light yellow */
 }

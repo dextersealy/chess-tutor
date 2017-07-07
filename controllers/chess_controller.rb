@@ -55,11 +55,9 @@ class ChessController < ControllerBase
   end
 
   def get_moves
-    player = get_player_moves(game.current_player)
-    opponent = get_player_moves(game.next_player)
-    threats = get_threats(player)
-    { player: encode_moves(player), opponent: encode_moves(opponent),
-      threats: encode_moves(threats) }
+    player_moves = get_player_moves(game.current_player)
+    threats = get_threats.merge(get_move_threats(player_moves))
+    { player: encode_moves(player_moves), threats: encode_moves(threats) }
   end
 
   def get_player_moves(player)
@@ -68,7 +66,31 @@ class ChessController < ControllerBase
       accumulator[piece.current_pos] = piece.valid_moves
       accumulator
     end
-    result.reject { |k, v| v.empty? }
+  end
+
+  def get_threats
+    pieces = board.get_pieces(game.current_player)
+    result = pieces.reduce(Hash.new([])) do |accumulator, piece|
+      threats = board.get_threats(piece.current_pos)
+      accumulator[piece.current_pos] = threats.map { |threat| threat.current_pos }
+      accumulator
+    end
+    result.reject { |_, v| v.empty? }
+  end
+
+  def get_move_threats(player_moves)
+    result = Hash.new([])
+
+    player_moves.each do |start_pos, moves|
+      moves.map do |end_pos|
+        threats = board.get_move_threats(start_pos, end_pos)
+        threats.each do |piece|
+          result[end_pos] += [piece.current_pos]
+        end
+      end
+    end
+
+    result
   end
 
   def encode_moves(moves)
@@ -76,21 +98,6 @@ class ChessController < ControllerBase
     moves.each do |key, value|
       result[encode(key)] = value.map { |pos| encode(pos) }
     end
-    result
-  end
-
-  def get_threats(player_moves)
-    result = Hash.new([])
-
-    player_moves.each do |start_pos, moves|
-      moves.map do |end_pos|
-        threats = board.get_threats(start_pos, end_pos)
-        threats.each do |piece|
-          result[end_pos] += [piece.current_pos]
-        end
-      end
-    end
-
     result
   end
 

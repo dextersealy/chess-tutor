@@ -96,7 +96,11 @@ class Board
     pieces.map { |piece| [piece.class.name, piece.color, piece.current_pos] }
   end
 
-  def get_threats(start_pos, end_pos)
+  def get_threats(pos)
+    grid.flatten.each.select { |piece| piece.valid_moves.include?(pos) }
+  end
+
+  def get_move_threats(start_pos, end_pos)
     move_piece(start_pos, end_pos)
     threats = grid.flatten.each.select { |piece| piece.moves.include?(end_pos) }
     undo_move
