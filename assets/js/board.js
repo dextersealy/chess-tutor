@@ -114,9 +114,10 @@ class Board {
     if (this.hasThreat($cell)) {
       $('.cell').toggleClass('threat', false);
       const threats = this.moves.threats[this.getLoc($cell)];
-      threats && threats.forEach(loc => {
-        $(`#${loc}`).toggleClass('threat', true);
-      });
+      if (threats) {
+        threats.forEach(loc => $(` #${loc}`).toggleClass('threat', true));
+        this.flashThreats();
+      }
     }
   }
 
@@ -126,7 +127,23 @@ class Board {
   }
 
   unhighlightThreats() {
+    this.stopFlashThreats();
     $('.cell').toggleClass('threat', false);
+  }
+
+  flashThreats() {
+    const interval = 500;
+    this.interval_id = window.setInterval(() => {
+      $('.threat').fadeOut(interval / 2, () => $('.threat').fadeIn());
+    }, interval);
+  }
+
+  stopFlashThreats() {
+    if (this.interval_id) {
+      window.clearInterval(this.interval_id);
+      this.interval_id = 0;
+      $('.threat').fadeIn();
+    }
   }
 
   //  Move actions

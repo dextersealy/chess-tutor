@@ -80,29 +80,24 @@ ul {
   display: flex;
 }
 
+#board {
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+}
+
 .cell {
   display: block;
   list-style: none;
-  border-top: 1px solid black;
-  border-right: 1px solid black;
-  padding: 10px;
+  border: 1px solid black;
+  margin: -1px 0 0 -1px;
+  padding: 10px 10px 20px 10px;
   width: 60px;
   height: 60px;
-  font-size: 40px;
+  font-size: 35px;
   text-align: center;
 }
 
-.row-head {
-  border-top: 0;
-  border-bottom: 0;
-}
-
-.col-head {
-  border-bottom: 0;
-  border-right: 0;
-}
-
-.gap {
+.row-head, .col-head, .gap {
   border: 0;
 }
 
@@ -112,9 +107,7 @@ ul {
 
 .selected {
   padding: 9px 9px 9px 9px;
-  border: 1px solid black;
-  border-top-width: 2px;
-  border-right-width: 2px;
+  border: 2px solid black;
 }
 
 .threat {
