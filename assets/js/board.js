@@ -150,10 +150,10 @@ class Board {
     const from = $from.attr('id');
     const to = $to.attr('id');
     $.post('/chess/moves', { from, to }).then(moves => {
-      this.saveMoves(moves);
-      this.highlightPlayerMoves();
       $to.html($from.html());
       $from.html(' ');
+      this.saveMoves(moves);
+      this.highlightPlayerMoves();
     });
   }
 }
