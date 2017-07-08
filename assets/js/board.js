@@ -184,7 +184,7 @@ class Board {
     window.setTimeout(($from, $to) => {
       $to.html($from.html());
       $from.html(' ');
-      this.flash($to, interval);
+      this.flash($to, interval / 2);
       window.setTimeout(() => this.stopFlashing(), interval * 4)
     }, interval * 4, $from, $to);
 

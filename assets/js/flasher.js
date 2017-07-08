@@ -15,6 +15,8 @@ class Flasher {
 
   stop() {
     if (this.$el) {
+      this.$el.stop();
+      this.$el.fadeIn(0);
       window.clearTimeout(this.id);
       this.$el = 0;
     }
