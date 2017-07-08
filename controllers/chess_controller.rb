@@ -4,38 +4,35 @@ require_relative '../models/game'
 
 class ChessController < ControllerBase
   protect_from_forgery
-  before_action :load_game, except: [:new]
   after_action :save_game, only: [:move, :new]
 
-  def index
+  attr_reader :game
+
+  def show
+    @game = Game.new(session[:game_state])
     @board = game.board
   end
 
   def new
+    @game = Game.new
     render json: get_board
   end
 
   def moves
+    @game = Game.new(session[:game_state])
     render json: get_moves
   end
 
   def move
+    @game = Game.new(session[:game_state])
     game.move(decode(params[:from]), decode(params[:to]))
     render json: get_moves
   end
 
   private
 
-  def game
-    @game ||= Game.new
-  end
-
   def board
     game.board
-  end
-
-  def load_game
-    @game ||= Game.new(session[:game_state])
   end
 
   def save_game
@@ -43,15 +40,10 @@ class ChessController < ControllerBase
   end
 
   def get_board
-    result = {}
-
-    pieces = board.get_pieces(:white).concat(board.get_pieces(:black))
-    pieces.each do |piece|
-      id = encode(piece.current_pos)
-      result[id] = piece.to_html
+    board.reduce(Hash.new) do |accumulator, piece|
+      accumulator[encode(piece.current_pos)] = piece.to_html
+      accumulator
     end
-
-    result
   end
 
   def get_moves
@@ -61,30 +53,29 @@ class ChessController < ControllerBase
   end
 
   def get_player_moves(player)
-    pieces = board.get_pieces(player)
-    result = pieces.reduce(Hash.new([])) do |accumulator, piece|
+    board.reduce(Hash.new) do |accumulator, piece|
+      next accumulator unless piece.color == player
       accumulator[piece.current_pos] = piece.valid_moves
       accumulator
     end
   end
 
   def get_threats
-    pieces = board.get_pieces(game.current_player)
-    result = pieces.reduce(Hash.new([])) do |accumulator, piece|
+    board.reduce(Hash.new) do |accumulator, piece|
+      next accumulator unless piece.color == game.current_player
       threats = board.get_threats(piece.current_pos)
-      accumulator[piece.current_pos] = threats.map { |threat| threat.current_pos }
+      next accumulator if threats.empty?
+      accumulator[piece.current_pos] = threats.map { |t| t.current_pos }
       accumulator
     end
-    result.reject { |_, v| v.empty? }
   end
 
   def get_move_threats(player_moves)
     result = Hash.new([])
 
     player_moves.each do |start_pos, moves|
-      moves.map do |end_pos|
-        threats = board.get_move_threats(start_pos, end_pos)
-        threats.each do |piece|
+      moves.each do |end_pos|
+        board.get_move_threats(start_pos, end_pos).each do |piece|
           result[end_pos] += [piece.current_pos]
         end
       end
@@ -94,7 +85,7 @@ class ChessController < ControllerBase
   end
 
   def encode_moves(moves)
-    result = Hash.new([])
+    result = {}
     moves.each do |key, value|
       result[encode(key)] = value.map { |pos| encode(pos) }
     end

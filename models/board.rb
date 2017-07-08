@@ -30,9 +30,7 @@ class Board
 
     grid << make_pieces(PIECES, :black, 0)
     grid << make_pieces(['Pawn'] * 8, :black, 1)
-
     4.times { @grid << Array.new(8) { NullPiece.instance } }
-
     grid << make_pieces(['Pawn'] * 8, :white, 6)
     grid << make_pieces(PIECES, :white, 7)
   end
@@ -127,8 +125,7 @@ class Board
   private
 
   def find_king(color)
-    find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
-    raise "should never get here"
+    return find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
   end
 
   def can_any_piece_move_to?(pos)

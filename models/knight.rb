@@ -3,14 +3,11 @@ require_relative 'piece.rb'
 class Knight < Piece
 
   def moves
-    possible_moves = []
-
-    KNIGHT_MOVES.each do |delta|
+    KNIGHT_MOVES.reduce([]) do |accumulator, delta|
       pos = add(current_pos, delta)
-      possible_moves << pos if valid_pos?(pos)
+      accumulator << pos if valid_pos?(pos)
+      accumulator
     end
-
-    possible_moves
   end
 
   def to_s
