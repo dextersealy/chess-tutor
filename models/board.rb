@@ -20,11 +20,11 @@ class Board
   ]
 
   def initialize(prev_state = nil)
+    @undo = []
+    @grid = []
+
     restore_state(prev_state) if prev_state
     return if @grid && @grid.flatten.length == 64;
-
-    @undo = nil
-    @grid = []
 
     grid << make_pieces(PIECES, :black, 0)
     grid << make_pieces(['Pawn'] * 8, :black, 1)
@@ -37,7 +37,7 @@ class Board
     raise InvalidPosition.new unless [start_pos, end_pos].all? { |pos| in_bounds?(pos) }
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
-    @undo = [start_pos, end_pos, self[end_pos]]
+    @undo << [start_pos, end_pos, self[end_pos]]
 
     piece = self[start_pos]
     self[end_pos] = piece
@@ -47,13 +47,12 @@ class Board
   end
 
   def undo_move
-    return unless @undo
-    start_pos, end_pos, piece = @undo
+    return if @undo.empty?
+    start_pos, end_pos, piece = @undo.pop
     self[start_pos] = self[end_pos]
     self[start_pos].current_pos = start_pos
     self[end_pos] = piece
     self[end_pos].current_pos = end_pos
-    @undo = nil
   end
 
   def [](pos)
@@ -131,7 +130,6 @@ class Board
   def restore_state(state)
     return if state.empty?
 
-    @grid = []
     8.times { @grid << Array.new(8) { NullPiece.instance } }
 
     state.each do |item|

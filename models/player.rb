@@ -5,9 +5,9 @@ class Player
     @color = color || game.current_player
   end
 
-  def get_valid_moves
+  def get_valid_moves(player_color = self.color)
     board.reduce(Hash.new) do |accumulator, piece|
-      next accumulator unless piece.color == color
+      next accumulator unless piece.color == player_color
       accumulator[piece.current_pos] = piece.valid_moves
       accumulator
     end
