@@ -1,6 +1,6 @@
 ul, li, div, h1, h2,
 section, header, footer, sidebar, subhead,
-button {
+button, row-label, col-label {
   margin: 0;
   padding: 0;
   border: 0;
@@ -88,45 +88,26 @@ content {
 ul {
   display: flex;
   align-items: center;
-  border-right: 1px solid black;
+}
+
+.cell, .row-label, .col-label {
+  width: 60px;
+  height: 60px;
+  margin: 1px;
+  text-align: center;
 }
 
 .cell {
-  border: 1px solid black;
-  margin: -1px -1px 0 0;
-  width: 60px;
-  height: 60px;
   font-size: 40px;
-  text-align: center;
+}
+
+.row-label, .col-label {
+  font-size: 30px;
+  padding: 10px;
 }
 
 .cell.selected {
   border: 2px solid black;
-}
-
-.cell:first-child, ul:last-child > .cell { /* row and column labels */
-  border: 0;
-}
-
-ul:first-child { /* draws top border when top row flashes */
-  border-top: 1px solid black;
-}
-
-ul:first-child .cell:first-child {
-  border-top: 1px solid #F5F5F5;
-  margin-top: -1px;
-}
-
-ul:last-child { /* draws right border when last column flashes */
-  border-right: 0;
-}
-
-.cell:first-child { /* draws left border when first column flashes */
-  border-right: 1px solid black;
-}
-
-ul:last-child > .cell:not(:first-child) { /* draws bottom border when bottom row flashes */
-  border-top: 1px solid black;
 }
 
 /* Chess pieces */

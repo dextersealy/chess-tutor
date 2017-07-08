@@ -9,7 +9,7 @@
     <% 8.times do |row| %>
       <% board_color = row.even? ? 'white' : 'black' %>
       <ul>
-        <li class='cell row-head'><%= "87654321"[row] %></li>
+        <li class='row-label'><%= "87654321"[row] %></li>
         <% 8.times do |col| %>
           <% pos = [row, col] %>
           <% piece = @board[pos] %>
@@ -20,9 +20,9 @@
       </ul>
     <% end %>
     <ul>
-      <li class='cell gap'/>
+      <li class='row-label col-label'/>
       <% 8.times do |col| %>
-        <li class='cell col-head'><%= "ABCDEFGH"[col] %></li>
+        <li class='col-label'><%= "ABCDEFGH"[col] %></li>
       <% end %>
     </ul>
   </board>
