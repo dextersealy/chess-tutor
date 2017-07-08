@@ -42,7 +42,7 @@ class Piece
   end
 
   def valid_moves
-    @valid_moves ||= moves.select { |pos| valid_move?(pos) }
+    moves.select { |pos| valid_move?(pos) }
   end
 
   private

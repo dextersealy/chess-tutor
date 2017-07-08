@@ -18,6 +18,8 @@ body {
   background-color: #F5F5F5;
 }
 
+/* Header and footer */
+
 header {
   background-color: #076390;
   padding: 20px;
@@ -34,29 +36,11 @@ h1 {
   text-transform: uppercase;
 }
 
-h2 {
-  color: white;
-  font-size: 12px;
-  text-transform: uppercase;
-  padding: 10px;
-  background-color: #076390;
-}
-
-content {
-  display: flex;
-  flex-direction: row;
-  margin: 20px auto;
-}
+/* Left nav bar */
 
 nav {
   background-color: #E37A00;
   padding: 10px;
-}
-
-sidebar {
-  background-color: #FFA741;
-  width: 200px;
-  margin-left: 20px;
 }
 
 #start-btn {
@@ -72,59 +56,88 @@ sidebar {
   background-color: #1876A3;
 }
 
+/* Right side bar */
+
+sidebar {
+  background-color: #FFA741;
+  width: 200px;
+  margin-left: 20px;
+}
+
+h2 {
+  color: white;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 10px;
+  background-color: #076390;
+}
+
+/* Board */
+
+content {
+  display: flex;
+  flex-direction: row;
+  margin: 20px auto;
+}
+
 .board-black {
   background-color: lightgrey;
 }
 
 ul {
   display: flex;
-}
-
-#board {
-  border-top: 1px solid black;
-  border-left: 1px solid black;
+  align-items: center;
+  border-right: 1px solid black;
 }
 
 .cell {
-  display: block;
-  list-style: none;
   border: 1px solid black;
-  margin: -1px 0 0 -1px;
-  padding: 10px 10px 20px 10px;
+  margin: -1px -1px 0 0;
   width: 60px;
   height: 60px;
-  font-size: 35px;
+  font-size: 40px;
   text-align: center;
 }
 
-.row-head, .col-head, .gap {
-  border: 0;
-}
-
-.selected, .moveable, .valid {
-  cursor: pointer;
-}
-
-.selected {
-  padding: 9px 9px 9px 9px;
+.cell.selected {
   border: 2px solid black;
 }
 
-.threat {
-  color: red;
+.cell:first-child, ul:last-child > .cell { /* row and column labels */
+  border: 0;
 }
 
-.threatened {
-  background-color: Pink;
+ul:first-child { /* draws top border when top row flashes */
+  border-top: 1px solid black;
+}
+
+ul:first-child .cell:first-child {
+  border-top: 1px solid #F5F5F5;
+  margin-top: -1px;
+}
+
+ul:last-child { /* draws right border when last column flashes */
+  border-right: 0;
+}
+
+.cell:first-child { /* draws left border when first column flashes */
+  border-right: 1px solid black;
+}
+
+ul:last-child > .cell:not(:first-child) { /* draws bottom border when bottom row flashes */
+  border-top: 1px solid black;
+}
+
+/* Chess pieces */
+
+.selected, .moveable, .valid {
+  cursor: pointer;
 }
 
 .moveable {
   background-color: LemonChiffon; /* light yellow */
 }
 
-.moveable.threatened {
-  background: linear-gradient(to bottom right, LemonChiffon, LightPink);
-}
 .selected, .moveable:hover {
   background-color: #fff280; /* yellow */
 }
@@ -132,12 +145,27 @@ ul {
 .valid {
   background-color: #98fb98; /* light green */
 }
+
 .valid:hover {
   background-color: #6bfa6b; /* green */
 }
-.valid.unsafe, .threatened {
+
+.valid.unsafe {
   background-color: LightPink;
 }
-.valid .unsafe:hover {
-  background-color: #ff667d; /* pink */
+
+.valid.unsafe:hover, .threatened {
+  background-color: #ff99a8; /* pink */
+}
+
+.moveable.threatened {
+  background: linear-gradient(to bottom right, LemonChiffon, LightPink);
+}
+
+.moveable.threatened:hover {
+  background: linear-gradient(to bottom right, #fff280, #ff99a8);
+}
+
+.threat {
+  color: red;
 }

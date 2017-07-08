@@ -44,6 +44,7 @@ class Board {
   //  Highlight the available moves
 
   highlightNextMoves() {
+    this.stopFlashThreats();
     $('.selected').toggleClass('selected', false);
     $('.valid').toggleClass('valid', false);
     $('.threat').toggleClass('threat', false);
