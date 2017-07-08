@@ -1,12 +1,11 @@
 require 'byebug'
 require_relative '../lib/controller_base'
 require_relative '../models/game'
+require_relative '../models/player'
 
 class ChessController < ControllerBase
   protect_from_forgery
   after_action :save_game, only: [:move, :new]
-
-  attr_reader :game
 
   def show
     @game = Game.new(session[:game_state])
@@ -20,16 +19,19 @@ class ChessController < ControllerBase
 
   def moves
     @game = Game.new(session[:game_state])
+    @player = Player.new(board, game.current_player)
     render json: get_moves
   end
 
   def move
     @game = Game.new(session[:game_state])
     game.move(decode(params[:from]), decode(params[:to]))
+    @player = Player.new(board, game.current_player)
     render json: get_moves
   end
 
   private
+  attr_accessor :game, :player
 
   def board
     game.board
@@ -47,27 +49,9 @@ class ChessController < ControllerBase
   end
 
   def get_moves
-    player_moves = get_player_moves(game.current_player)
-    threats = get_threats.merge(get_move_threats(player_moves))
+    player_moves = player.get_moves
+    threats = get_move_threats(player_moves).merge(player.get_threats)
     { player: encode_moves(player_moves), threats: encode_moves(threats) }
-  end
-
-  def get_player_moves(player)
-    board.reduce(Hash.new) do |accumulator, piece|
-      next accumulator unless piece.color == player
-      accumulator[piece.current_pos] = piece.valid_moves
-      accumulator
-    end
-  end
-
-  def get_threats
-    board.reduce(Hash.new) do |accumulator, piece|
-      next accumulator unless piece.color == game.current_player
-      threats = board.get_threats(piece.current_pos)
-      next accumulator if threats.empty?
-      accumulator[piece.current_pos] = threats.map { |t| t.current_pos }
-      accumulator
-    end
   end
 
   def get_move_threats(player_moves)
