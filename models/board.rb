@@ -15,8 +15,6 @@ require 'byebug'
 class Board
   include Enumerable
 
-  attr_accessor :grid
-
   PIECES = [
     'Rook', 'Knight', 'Bishop', 'Queen', 'King', 'Bishop', 'Knight','Rook'
   ]
@@ -69,7 +67,8 @@ class Board
   end
 
   def in_bounds?(pos)
-    pos.all? { |coord| coord.between?(0, 7) }
+    row, col = pos
+    row >= 0 && col >= 0 && row < 8 && col < 8
   end
 
   def occupied?(pos)
@@ -83,12 +82,7 @@ class Board
 
   def checkmate?(color)
     return false unless in_check?(color)
-    return true if get_pieces(color).all? { |piece| piece.valid_moves.empty? }
-    false
-  end
-
-  def get_pieces(color)
-    select { |piece| piece.color == color }
+    all? { |piece| piece.color != color || piece.valid_moves.empty? }
   end
 
   def each
@@ -123,6 +117,8 @@ class Board
   end
 
   private
+
+  attr_accessor :grid
 
   def find_king(color)
     return find { |piece| piece.is_a?(King) && piece.color == color }.current_pos

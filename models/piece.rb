@@ -43,7 +43,9 @@ class Piece
   }
 
   def add(pos, delta)
-    pos.zip(delta).map { |arr| arr.reduce(:+) }
+    x, y = pos
+    dx, dy = delta
+    [x + dx, y + dy]
   end
 
   private
@@ -53,8 +55,7 @@ class Piece
   end
 
   def valid_pos?(pos)
-    return false unless board.in_bounds?(pos)
-    board[pos].color != self.color
+    board.in_bounds?(pos) && board[pos].color != self.color
   end
 
 end
