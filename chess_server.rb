@@ -9,6 +9,7 @@ router.draw do
   post Regexp.new("^/chess/new$"), ChessController, :new
   get Regexp.new("^/chess/moves$"), ChessController, :moves
   post Regexp.new("^/chess/moves$"), ChessController, :move
+  get Regexp.new("^/chess/move$"), ChessController, :make_move
 end
 
 app = Proc.new do |env|

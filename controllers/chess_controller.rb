@@ -2,10 +2,11 @@ require 'byebug'
 require_relative '../lib/controller_base'
 require_relative '../models/game'
 require_relative '../models/player'
+require_relative '../models/computer_player'
 
 class ChessController < ControllerBase
   protect_from_forgery
-  after_action :save_game, only: [:move, :new]
+  after_action :save_game, except: [:show, :moves]
 
   def show
     @game = Game.new(session[:game_state])
@@ -19,19 +20,24 @@ class ChessController < ControllerBase
 
   def moves
     @game = Game.new(session[:game_state])
-    @player = Player.new(board, game.current_player)
     render json: get_moves
   end
 
   def move
     @game = Game.new(session[:game_state])
     game.move(decode(params[:from]), decode(params[:to]))
-    @player = Player.new(board, game.current_player)
     render json: get_moves
   end
 
+  def make_move
+    @game = Game.new(session[:game_state])
+    start_pos, end_pos = ComputerPlayer.new(game).get_move
+    game.move(start_pos, end_pos)
+    render json: { from: encode(start_pos), to: encode(end_pos) }
+  end
+
   private
-  attr_accessor :game, :player
+  attr_accessor :game
 
   def board
     game.board
@@ -49,7 +55,8 @@ class ChessController < ControllerBase
   end
 
   def get_moves
-    player_moves = player.get_moves
+    player = Player.new(game)
+    player_moves = player.get_valid_moves
     threats = get_move_threats(player_moves).merge(player.get_threats)
     { player: encode_moves(player_moves), threats: encode_moves(threats) }
   end

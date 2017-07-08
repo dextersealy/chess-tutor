@@ -11,11 +11,3 @@ $(() => {
   const app = new App;
   app.start();
 })
-
-function getPiece($cell) {
-  return $cell.html();
-}
-
-function canMove($cell) {
-  return $cell.hasClass('moveable');
-}

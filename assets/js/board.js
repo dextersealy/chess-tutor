@@ -44,7 +44,7 @@ class Board {
   //  Highlight the available moves
 
   highlightNextMoves() {
-    this.stopFlashThreats();
+    this.stopFlashing();
     $('.selected').toggleClass('selected', false);
     $('.valid').toggleClass('valid', false);
     $('.threat').toggleClass('threat', false);
@@ -117,7 +117,7 @@ class Board {
       const threats = this.moves.threats[this.getLoc($cell)];
       if (threats) {
         threats.forEach(loc => $(` #${loc}`).toggleClass('threat', true));
-        this.flashThreats();
+        this.flash($('.threat'));
       }
     }
   }
@@ -128,23 +128,8 @@ class Board {
   }
 
   unhighlightThreats() {
-    this.stopFlashThreats();
+    this.stopFlashing();
     $('.cell').toggleClass('threat', false);
-  }
-
-  flashThreats() {
-    const interval = 500;
-    this.interval_id = window.setInterval(() => {
-      $('.threat').fadeOut(interval / 2, () => $('.threat').fadeIn());
-    }, interval);
-  }
-
-  stopFlashThreats() {
-    if (this.interval_id) {
-      window.clearInterval(this.interval_id);
-      this.interval_id = 0;
-      $('.threat').fadeIn();
-    }
   }
 
   //  Move actions
@@ -153,10 +138,10 @@ class Board {
     const $cell = $(e.target);
     if (this.getLoc($cell) === this.getSelectedLoc()) {
       this.cancelMove();
-    } else if (canMove($cell)) {
+    } else if (this.isMoveable($cell)) {
       this.startMove($cell);
     } else if (this.isValidMove($cell)) {
-      this.finishMove($cell);
+      this.finishMove($cell).then(() => this.makeMove());
     }
   }
 
@@ -175,13 +160,65 @@ class Board {
     const $from = $('.selected')
     const from = $from.attr('id');
     const to = $to.attr('id');
-    $.post('/chess/moves', { from, to }).then(moves => {
+    return $.post('/chess/moves', { from, to }).then(moves => {
       $to.html($from.html());
       $from.html(' ');
       this.moves = moves;
       this.highlightNextMoves();
     });
   }
+
+  makeMove() {
+    $.get('/chess/move').then(move => {
+      this.showMove(move.from, move.to);
+    });
+  }
+
+  showMove(from, to) {
+    const interval = Board.FLASH_INTERVAL / 2;
+    const $from = $(`#${from}`);
+    const $to = $(`#${to}`);
+
+    this.flash($from, interval);
+    window.setTimeout(($from, $to) => {
+      $to.html($from.html());
+      $from.html(' ');
+      this.flash($to, interval);
+      window.setTimeout(() => this.stopFlashing(), interval * 4)
+    }, interval * 4, $from, $to);
+
+    this.getNextMoves().then(() => {
+      this.whenDoneFlashing(() => this.highlightNextMoves())
+    });
+  }
+
+  // Flashing
+
+  flash($el, interval = Board.FLASH_INTERVAL) {
+    this.stopFlashing();
+    this.flash_el = $el;
+    this.flash_id = window.setInterval(() => {
+      $el.fadeOut(interval, () => $el.fadeIn(interval))
+    }, 0);
+  }
+
+  stopFlashing() {
+    if (this.flash_id) {
+      window.clearInterval(this.flash_id);
+      this.flash_el.fadeIn();
+      this.flash_id = 0;
+    }
+  }
+
+  whenDoneFlashing(func) {
+    if (this.flash_id) {
+      window.setTimeout(() => this.whenDoneFlashing(func), this.FLASH_INTERVAL);
+    } else {
+      func();
+    }
+  }
+
+  //  Utility functions
 
   getLoc($cell) {
     return $cell.attr('id');
@@ -214,5 +251,6 @@ class Board {
   isValidMove($cell) {
     return $cell.hasClass('valid');
   }
-
 }
+
+Board.FLASH_INTERVAL = 500;
