@@ -13,6 +13,8 @@ require 'byebug'
 # comment
 
 class Board
+  include Enumerable
+
   attr_accessor :grid
 
   PIECES = [
@@ -88,21 +90,28 @@ class Board
   end
 
   def get_pieces(color)
-    grid.flatten.select { |piece| piece.color == color }
+    select { |piece| piece.color == color }
+  end
+
+  def each
+    grid.each do |row|
+      row.each do |piece|
+        yield piece unless piece.nil?
+      end
+    end
   end
 
   def save_state
-    pieces = get_pieces(:white).concat(get_pieces(:black))
-    pieces.map { |piece| [piece.class.name, piece.color, piece.current_pos] }
+    map { |piece| [piece.class.name, piece.color, piece.current_pos] }
   end
 
   def get_threats(pos)
-    grid.flatten.each.select { |piece| piece.valid_moves.include?(pos) }
+    select { |piece| piece.valid_moves.include?(pos) }
   end
 
   def get_move_threats(start_pos, end_pos)
     move_piece(start_pos, end_pos)
-    threats = grid.flatten.each.select { |piece| piece.moves.include?(end_pos) }
+    threats = select { |piece| piece.moves.include?(end_pos) }
     undo_move
     threats
   end
@@ -118,17 +127,12 @@ class Board
   private
 
   def find_king(color)
-    grid.flatten.each do |piece|
-      return piece.current_pos if piece.is_a?(King) && piece.color == color
-    end
+    find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
     raise "should never get here"
   end
 
   def can_any_piece_move_to?(pos)
-    grid.flatten.each do |piece|
-      return true if piece.moves.include?(pos)
-    end
-    false
+    any? { |piece| piece.moves.include?(pos) }
   end
 
   def restore_state(state)

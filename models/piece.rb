@@ -45,6 +45,10 @@ class Piece
     moves.select { |pos| valid_move?(pos) }
   end
 
+  def nil?
+    false
+  end
+
   private
 
   def valid_move?(pos)

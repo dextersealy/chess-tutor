@@ -12,4 +12,8 @@ class NullPiece < Piece
   def to_s
     " "
   end
+
+  def nil?
+    true
+  end
 end
