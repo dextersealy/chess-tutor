@@ -3,6 +3,7 @@ class Board {
     this.handleClick = this.handleClick.bind(this);
     this.handleHoverIn = this.handleHoverIn.bind(this);
     this.handleHoverOut = this.handleHoverOut.bind(this);
+    this.flasher = new Flasher;
 
     $('#board').click(e => this.handleClick(e));
     $('.cell').hover(e => this.handleHoverIn(e), e => this.handleHoverOut(e));
@@ -195,23 +196,15 @@ class Board {
   // Flashing
 
   flash($el, interval = Board.FLASH_INTERVAL) {
-    this.stopFlashing();
-    this.flash_el = $el;
-    this.flash_id = window.setInterval(() => {
-      $el.fadeOut(interval, () => $el.fadeIn(interval))
-    }, 0);
+    this.flasher.start($el, interval);
   }
 
   stopFlashing() {
-    if (this.flash_id) {
-      window.clearInterval(this.flash_id);
-      this.flash_el.fadeIn();
-      this.flash_id = 0;
-    }
+    this.flasher.stop();
   }
 
   whenDoneFlashing(func) {
-    if (this.flash_id) {
+    if (this.flasher.isFlashing()) {
       window.setTimeout(() => this.whenDoneFlashing(func), this.FLASH_INTERVAL);
     } else {
       func();
