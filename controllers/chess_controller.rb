@@ -1,4 +1,3 @@
-require 'byebug'
 require_relative '../lib/controller_base'
 require_relative '../models/game'
 require_relative '../models/player'

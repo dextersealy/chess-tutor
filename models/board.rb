@@ -8,10 +8,6 @@ require_relative 'bishop.rb'
 require_relative 'null.rb'
 require_relative 'errors.rb'
 
-require 'byebug'
-
-# comment
-
 class Board
   include Enumerable
 
