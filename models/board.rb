@@ -115,8 +115,15 @@ class Board
     valid
   end
 
-  private
+  def to_s
+    grid.map { |row| row.join('') }.join("\n")
+  end
 
+  def inspect
+    "#{to_s}"
+  end
+
+  private
   attr_accessor :grid
 
   def find_king(color)

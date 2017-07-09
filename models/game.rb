@@ -38,6 +38,10 @@ class Game
     { white: :black, black: :white }[@current_player]
   end
 
+  def inspect
+    "player: #{current_player}\n#{board}"
+  end
+
   private
 
   VERSION = 1
