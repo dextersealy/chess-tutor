@@ -12,7 +12,7 @@ class Board {
   //  Start a new game
 
   reset() {
-    $.post('/chess/new').then(pieces => {
+    $.post('/new').then(pieces => {
       this.setup(pieces);
       this.init();
     });
@@ -37,7 +37,7 @@ class Board {
   //  Retrieve the available moves
 
   getNextMoves() {
-    return $.get('/chess/moves').then(moves => {
+    return $.get('/moves').then(moves => {
       this.moves = moves;
     });
   }
@@ -161,7 +161,7 @@ class Board {
     const $from = $('.selected')
     const from = $from.attr('id');
     const to = $to.attr('id');
-    return $.post('/chess/moves', { from, to }).then(moves => {
+    return $.post('/moves', { from, to }).then(moves => {
       $to.html($from.html());
       $from.html(' ');
       this.moves = moves;
@@ -170,7 +170,7 @@ class Board {
   }
 
   makeMove() {
-    $.get('/chess/move').then(move => {
+    $.get('/move').then(move => {
       this.showMove(move.from, move.to);
     });
   }

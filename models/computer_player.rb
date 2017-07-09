@@ -8,8 +8,7 @@ class ComputerPlayer < Player
   private
 
   def calculate_move
-    best_move, best_value = minmax(3)
-    puts "#{encode(*best_move)} => #{best_value}"
+    best_move, _ = minmax(3)
     best_move
   end
 
@@ -38,15 +37,12 @@ class ComputerPlayer < Player
         beta = best_value if beta < best_value
       end
 
-      if beta <= alpha
-        puts "pruned!!"
-        break
-      end
+      break if beta <= alpha
     end
 
-    if best_move && best_value != 0 && depth < 2
-      puts "#{prefix}#{encode(*best_move)} => #{best_value}"
-    end
+    # if best_move && best_value != 0 && depth < 2
+    #   puts "#{prefix}#{encode(*best_move)} => #{best_value}"
+    # end
 
     return best_move, best_value
   end
