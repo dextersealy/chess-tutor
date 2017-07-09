@@ -1,4 +1,5 @@
 require 'rack'
+require 'optparse'
 require_relative 'controllers/chess_controller'
 require_relative 'lib/router'
 require_relative 'lib/static'
@@ -24,7 +25,11 @@ app = Rack::Builder.new do
   run app
 end.to_app
 
-Rack::Server.start(
-  app: app,
-  Port: 3000
-)
+options = {}
+OptionParser.new do |opts|
+  opts.on("-pPORT") do |port|
+    options[:port] = port
+  end
+end.parse!
+
+Rack::Server.start(app: app, Port: options[:port] || 3000)
