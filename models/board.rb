@@ -17,21 +17,48 @@ class Board
   ]
 
   def initialize(prev_state = nil)
+    if !restore_state(prev_state)
+      @board = []
+      @board.concat(make_pieces(PIECES, :black, 0))
+      @board.concat(make_pieces(['Pawn'] * 8, :black, 1))
+      @board.concat([NullPiece.instance] * 32)
+      @board.concat(make_pieces(['Pawn'] * 8, :white, 6))
+      @board.concat(make_pieces(PIECES, :white, 7))
+    end
     @undo = []
-    @grid = []
+  end
 
-    restore_state(prev_state) if prev_state
-    return if @grid && @grid.flatten.length == 64;
+  def [](pos)
+    row, col = pos
+    board[row * 8 + col]
+  end
 
-    grid << make_pieces(PIECES, :black, 0)
-    grid << make_pieces(['Pawn'] * 8, :black, 1)
-    4.times { @grid << Array.new(8) { NullPiece.instance } }
-    grid << make_pieces(['Pawn'] * 8, :white, 6)
-    grid << make_pieces(PIECES, :white, 7)
+  def []=(pos, piece)
+    row, col = pos
+    board[row * 8 + col] = piece
+  end
+
+  def each
+    board.each { |piece| yield piece unless piece.nil? }
+  end
+
+  def occupied?(pos)
+    !self[pos].is_a?(NullPiece)
+  end
+
+  def in_check?(color)
+    pos = find_king(color)
+    can_any_piece_move_to?(pos)
+  end
+
+  def checkmate?(color)
+    return false unless in_check?(color)
+    all? { |piece| piece.color != color || piece.valid_moves.empty? }
   end
 
   def move_piece(start_pos, end_pos)
-    raise InvalidPosition.new unless [start_pos, end_pos].all? { |pos| in_bounds(pos) }
+    raise InvalidPosition.new unless ChessUtil::in_bounds(start_pos) &&
+      ChessUtil::in_bounds(end_pos)
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
     @undo << [start_pos, end_pos, self[end_pos]]
@@ -52,44 +79,12 @@ class Board
     self[end_pos].current_pos = end_pos
   end
 
-  def [](pos)
-    row, col = pos
-    grid[row][col]
-  end
-
-  def []=(pos, piece)
-    row, col = pos
-    grid[row][col] = piece
-  end
-
-  def in_bounds(pos)
-    ChessUtil.in_bounds(pos)
-  end
-
-  def occupied?(pos)
-    !self[pos].is_a?(NullPiece)
-  end
-
-  def in_check?(color)
-    pos = find_king(color)
-    can_any_piece_move_to?(pos)
-  end
-
-  def checkmate?(color)
-    return false unless in_check?(color)
-    all? { |piece| piece.color != color || piece.valid_moves.empty? }
-  end
-
-  def each
-    grid.each do |row|
-      row.each do |piece|
-        yield piece unless piece.nil?
-      end
-    end
-  end
-
-  def save_state
-    map { |piece| [piece.class.name, piece.color, piece.current_pos] }
+  def valid_move?(start_pos, end_pos)
+    color = self[start_pos].color
+    move_piece(start_pos, end_pos)
+    valid = !in_check?(color)
+    undo_move
+    valid
   end
 
   def get_threats(pos)
@@ -103,16 +98,12 @@ class Board
     threats
   end
 
-  def valid_move?(start_pos, end_pos)
-    color = self[start_pos].color
-    move_piece(start_pos, end_pos)
-    valid = !in_check?(color)
-    undo_move
-    valid
+  def save_state
+    map { |piece| [piece.class.name, piece.color, piece.current_pos] }
   end
 
   def to_s
-    grid.map { |row| row.join('') }.join("\n")
+    (0..7).map { |row| board.slice(row * 8, 8).join('') }.join("\n")
   end
 
   def inspect
@@ -120,7 +111,7 @@ class Board
   end
 
   private
-  attr_accessor :grid
+  attr_accessor :board
 
   def find_king(color)
     return find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
@@ -131,14 +122,13 @@ class Board
   end
 
   def restore_state(state)
-    return if state.empty?
-
-    8.times { @grid << Array.new(8) { NullPiece.instance } }
-
+    return false unless state
+    @board = [NullPiece.instance] * 64;
     state.each do |item|
       piece = make_piece(*item)
       self[piece.current_pos] = piece
     end
+    true
   end
 
   def make_pieces(factory_array, color, row)

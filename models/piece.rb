@@ -42,10 +42,6 @@ class Piece
     nw: [-1, -1], ne: [-1, 1], sw: [1, -1], se: [1, 1]
   }
 
-  def add(pos, delta)
-    ChessUtil::add(pos, delta)
-  end
-
   private
 
   def valid_move?(pos)
@@ -53,7 +49,7 @@ class Piece
   end
 
   def valid_pos?(pos)
-    board.in_bounds(pos) && board[pos].color != self.color
+    ChessUtil::in_bounds(pos) && board[pos].color != self.color
   end
 
 end

@@ -1,10 +1,11 @@
 require_relative 'piece.rb'
+require_relative '../c/chess_util'
 
 class Knight < Piece
 
   def moves
     KNIGHT_MOVES.reduce([]) do |accumulator, delta|
-      pos = add(current_pos, delta)
+      pos = ChessUtil::add(current_pos, delta)
       accumulator << pos if valid_pos?(pos)
       accumulator
     end

@@ -24,8 +24,8 @@ class Pawn < Piece
     dir = (color == :black) ? :down : :up
     pos = current_pos
     2.times do
-      pos = add(pos, Piece::MOVES[dir])
-      break if board.occupied?(pos) || !board.in_bounds(pos)
+      pos = ChessUtil::add(pos, Piece::MOVES[dir])
+      break if board.occupied?(pos) || !ChessUtil::in_bounds(pos)
       result << pos
       break unless first_move?
     end
