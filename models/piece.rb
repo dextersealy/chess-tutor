@@ -1,5 +1,6 @@
 require 'singleton'
 require 'htmlentities'
+require_relative '../c/chess_util'
 
 class Piece
   attr_accessor :color, :current_pos, :board
@@ -42,24 +43,8 @@ class Piece
   }
 
   def add(pos, delta)
-    x, y = pos
-    dx, dy = delta;
-    [x + dx, y + dy]
+    ChessUtil::add(pos, delta)
   end
-
-  # inline do |builder|
-  #   builder.c "
-  #     VALUE add(VALUE pos, VALUE delta) {
-  #       int x = NUM2INT(rb_ary_entry(pos, 0));
-  #       int y = NUM2INT(rb_ary_entry(pos, 1));
-  #       int dx = NUM2INT(rb_ary_entry(delta, 0));
-  #       int dy = NUM2INT(rb_ary_entry(delta, 1));
-  #       VALUE arr = rb_ary_new_capa(2);
-  #       rb_ary_store(arr, 0, INT2NUM(x + dx));
-  #       rb_ary_store(arr, 1, INT2NUM(y + dy));
-  #       return arr;
-  #     }"
-  # end
 
   private
 

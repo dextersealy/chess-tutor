@@ -1,4 +1,3 @@
-require 'inline'
 require_relative 'piece.rb'
 require_relative 'rook.rb'
 require_relative 'knight.rb'
@@ -8,6 +7,8 @@ require_relative 'pawn.rb'
 require_relative 'bishop.rb'
 require_relative 'null.rb'
 require_relative 'errors.rb'
+
+require_relative '../c/chess_util'
 
 class Board
   include Enumerable
@@ -63,22 +64,8 @@ class Board
   end
 
   def in_bounds(pos)
-    row, col = pos
-    row >= 0 && row < 8 && col >= 0 && col < 8
+    ChessUtil.in_bounds(pos)
   end
-
-  # inline do |builder|
-  #   builder.c "
-  #     VALUE in_bounds(VALUE pos) {
-  #       int row = NUM2INT(rb_ary_entry(pos, 0));
-  #       int col = NUM2INT(rb_ary_entry(pos, 1));
-  #       if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-  #         return Qtrue;
-  #       } else {
-  #         return Qfalse;
-  #       }
-  #     }"
-  # end
 
   def occupied?(pos)
     !self[pos].is_a?(NullPiece)
