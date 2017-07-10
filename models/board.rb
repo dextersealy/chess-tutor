@@ -7,7 +7,6 @@ require_relative 'pawn.rb'
 require_relative 'bishop.rb'
 require_relative 'null.rb'
 require_relative 'errors.rb'
-
 require_relative '../c/chess_util'
 
 class Board
