@@ -25,7 +25,7 @@ class Pawn < Piece
     pos = current_pos
     2.times do
       pos = add(pos, Piece::MOVES[dir])
-      break if board.occupied?(pos) || !board.in_bounds?(pos)
+      break if board.occupied?(pos) || !board.in_bounds_c(pos)
       result << pos
       break unless first_move?
     end

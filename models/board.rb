@@ -1,3 +1,4 @@
+require 'inline'
 require_relative 'piece.rb'
 require_relative 'rook.rb'
 require_relative 'knight.rb'
@@ -30,7 +31,7 @@ class Board
   end
 
   def move_piece(start_pos, end_pos)
-    raise InvalidPosition.new unless [start_pos, end_pos].all? { |pos| in_bounds?(pos) }
+    raise InvalidPosition.new unless [start_pos, end_pos].all? { |pos| in_bounds_c(pos) }
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
     @undo << [start_pos, end_pos, self[end_pos]]
@@ -61,9 +62,17 @@ class Board
     grid[row][col] = piece
   end
 
-  def in_bounds?(pos)
-    row, col = pos
-    row >= 0 && col >= 0 && row < 8 && col < 8
+  inline do |builder|
+    builder.c "
+      VALUE in_bounds_c(VALUE pos) {
+        int row = NUM2INT(rb_ary_entry(pos, 0));
+        int col = NUM2INT(rb_ary_entry(pos, 1));
+        if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+          return Qtrue;
+        } else {
+          return Qfalse;
+        }
+      }"
   end
 
   def occupied?(pos)
