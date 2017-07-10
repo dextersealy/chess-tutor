@@ -5,6 +5,7 @@ Chess Tutor is a single-page web application that teaches you how to play chess.
 ## Features
 
 TBD
+
 ## Implementation
 
 TDB
