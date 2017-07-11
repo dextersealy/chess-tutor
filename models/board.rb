@@ -1,12 +1,13 @@
-require_relative 'piece.rb'
-require_relative 'rook.rb'
-require_relative 'knight.rb'
-require_relative 'king.rb'
-require_relative 'queen.rb'
-require_relative 'pawn.rb'
-require_relative 'bishop.rb'
-require_relative 'null.rb'
-require_relative 'errors.rb'
+require_relative 'piece'
+require_relative 'rook'
+require_relative 'knight'
+require_relative 'king'
+require_relative 'queen'
+require_relative 'pawn'
+require_relative 'bishop'
+require_relative 'null'
+require_relative 'errors'
+require_relative 'util'
 require_relative '../c/chess_util'
 
 class Board
@@ -102,12 +103,7 @@ class Board
   end
 
   def save_state
-    {
-      pieces: map { |piece| [piece.class.name, piece.color, piece.current_pos] },
-      undo: @undo.map do |start_pos, end_pos, piece|
-        [start_pos, end_pos, piece.nil? ? nil : piece.class.name, piece.color]
-      end
-    }
+    encode
   end
 
   def to_s
@@ -119,7 +115,14 @@ class Board
   end
 
   private
+
   attr_accessor :board
+
+  def make_pieces(factory_array, color, row)
+    factory_array.map.with_index do |class_, idx|
+      make_piece(class_, color, [row, idx])
+    end
+  end
 
   def king_pos_of(color)
     return find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
@@ -129,33 +132,56 @@ class Board
     any? { |piece| piece.moves.include?(pos) }
   end
 
-  def restore_state(state)
-    return false unless state
-
-    @board = [NullPiece.instance] * 64;
-    state['pieces'].each do |item|
-      piece = make_piece(*item)
-      self[piece.current_pos] = piece
-    end
-
-    @undo = []
-    state['undo'].each do |start_pos, end_pos, classname, color|
-      @undo << [start_pos, end_pos, make_piece(classname, color, end_pos)]
-    end
-
+  def restore_state(str)
+    return false unless str
+    decode(str)
     true
   end
 
-  def make_pieces(factory_array, color, row)
-    factory_array.map.with_index do |class_, idx|
-      make_piece(class_, color, [row, idx])
+  def encode
+    arr = []
+    # Pieces
+    board.each_with_index do |piece, idx|
+      arr << '/' if idx % 8 == 0 && idx != 0
+      if piece.nil?
+        (arr.last.is_a? Numeric) ? arr[arr.size-1] += 1 : arr << 1
+      else
+        arr << encode_piece(piece)
+      end
+    end
+
+    # Undo
+    arr << '|'
+    @undo.each do |from, to, piece|
+      arr << "#{encode_pos(from)}#{encode_pos(to)}#{encode_piece(piece)}"
+    end
+
+    arr.join
+  end
+
+  def decode(str)
+    pieces, undo = str.split('|')
+
+    idx = 0;
+    @board = [NullPiece.instance] * 64;
+    pieces.each_char do |ch|
+      next if ch == '/'
+      if "12345678".include?(ch)
+        idx += ch.to_i
+      else
+        @board[idx] = decode_piece(ch, [idx / 8, idx % 8])
+        idx += 1
+      end
+    end
+
+    @undo = []
+    return unless undo
+    (0...undo.length).step(5) do |i|
+      start_pos = decode_pos(undo.slice(i, 2))
+      end_pos = decode_pos(undo.slice(i + 2, 2))
+      piece = decode_piece(undo[i+4], end_pos)
+      @undo << [start_pos, end_pos, piece]
     end
   end
 
-  def make_piece(classname, color, pos)
-    return NullPiece.instance unless classname
-    piece = Object.const_get(classname).new(self, color.to_sym)
-    piece.current_pos = pos
-    piece
-  end
 end

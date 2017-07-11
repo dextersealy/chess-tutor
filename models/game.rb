@@ -4,9 +4,9 @@ class Game
   attr_accessor :board, :current_player
 
   def initialize(prev_state = {})
-    if prev_state && prev_state['version'] == VERSION
-      @board = Board.new(prev_state['board'])
-      @current_player = prev_state['current_player'].to_sym
+    if prev_state && prev_state['V'] == VERSION
+      @board = Board.new(prev_state['B'])
+      @current_player = prev_state['P'].to_sym
     else
       @board = Board.new
       @current_player = :white
@@ -34,8 +34,7 @@ class Game
   end
 
   def save_state
-    { 'version' => VERSION, 'board' => @board.save_state,
-      'current_player' => current_player }
+    { 'V' => VERSION, 'B' => @board.save_state, 'P' => current_player }
   end
 
   def next_player
@@ -48,5 +47,5 @@ class Game
 
   private
 
-  VERSION = 2
+  VERSION = 4
 end

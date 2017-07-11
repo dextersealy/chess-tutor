@@ -48,7 +48,7 @@ class ComputerPlayer < Player
   end
 
   def encode(start_pos, end_pos)
-    axis = ["87654321", "ABCDEFGH"]
+    axis = ["87654321", "abcdefgh"]
     from = axis.zip(start_pos).map { |letters, idx| letters[idx] }.reverse.join
     to = axis.zip(end_pos).map { |letters, idx| letters[idx] }.reverse.join
     "#{from} => #{to}"

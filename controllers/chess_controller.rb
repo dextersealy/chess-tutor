@@ -2,6 +2,7 @@ require_relative '../lib/controller_base'
 require_relative '../models/game'
 require_relative '../models/player'
 require_relative '../models/computer_player'
+require_relative '../models/util'
 
 class ChessController < ControllerBase
   protect_from_forgery
@@ -29,7 +30,7 @@ class ChessController < ControllerBase
 
   def move
     @game = Game.new(session[:game_state])
-    game.move(decode(params[:from]), decode(params[:to]))
+    game.move(decode_pos(params[:from]), decode_pos(params[:to]))
     render json: get_board
   end
 
@@ -37,7 +38,8 @@ class ChessController < ControllerBase
     @game = Game.new(session[:game_state])
     start_pos, end_pos = ComputerPlayer.new(game).get_move
     game.move(start_pos, end_pos)
-    render json: { from: encode(start_pos), to: encode(end_pos), board: get_board }
+    render json: { from: encode_pos(start_pos), to: encode_pos(end_pos),
+      board: get_board }
   end
 
   private
@@ -58,7 +60,7 @@ class ChessController < ControllerBase
         game.next_player => game.captured(game.next_player).map(&:to_s)
       },
       active: board.reduce(Hash.new) do |accumulator, piece|
-        accumulator[encode(piece.current_pos)] = piece.to_html
+        accumulator[encode_pos(piece.current_pos)] = piece.to_html
         accumulator
       end,
     }
@@ -88,20 +90,8 @@ class ChessController < ControllerBase
   def encode_moves(moves)
     result = {}
     moves.each do |key, value|
-      result[encode(key)] = value.map { |pos| encode(pos) }
+      result[encode_pos(key)] = value.map { |pos| encode_pos(pos) }
     end
     result
   end
-
-  def encode(pos)
-    row, col = pos
-    "ABCDEFGH"[col] + "87654321"[row]
-  end
-
-  def decode(coord)
-    col = "ABCDEFGH".index(coord[0])
-    row = "87654321".index(coord[1])
-    [row, col]
-  end
-
 end

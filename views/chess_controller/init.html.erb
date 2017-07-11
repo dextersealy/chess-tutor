@@ -18,7 +18,7 @@
         <% 8.times do |col| %>
           <% pos = [row, col] %>
           <% piece = @board[pos] %>
-          <li id="<%= encode(pos) %>"
+          <li id="<%= encode_pos(pos) %>"
             class="cell <%="board-#{board_color}"%>"><%= piece.to_html %></li>
           <% board_color = board_color == 'white' ? 'black' : 'white'%>
         <% end %>
@@ -27,7 +27,7 @@
     <ul class='board-row'>
       <li class='row-label col-label'/>
       <% 8.times do |col| %>
-        <li class='col-label'><%= "ABCDEFGH"[col] %></li>
+        <li class='col-label'><%= "abcdefgh"[col] %></li>
       <% end %>
     </ul>
     <ul class='black-captured'>
