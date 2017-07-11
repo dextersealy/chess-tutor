@@ -6,9 +6,14 @@
     <button id='start-btn'>Start Over</button>
   </nav>
   <board id='board'>
+    <ul class='white-captured'>
+      <% game.captured(:white).each do |piece| %>
+      <li><%= piece.to_html %></li>
+      <% end %>
+    </ul>
     <% 8.times do |row| %>
       <% board_color = row.even? ? 'white' : 'black' %>
-      <ul>
+      <ul class='board-row'>
         <li class='row-label'><%= "87654321"[row] %></li>
         <% 8.times do |col| %>
           <% pos = [row, col] %>
@@ -19,10 +24,15 @@
         <% end %>
       </ul>
     <% end %>
-    <ul>
+    <ul class='board-row'>
       <li class='row-label col-label'/>
       <% 8.times do |col| %>
         <li class='col-label'><%= "ABCDEFGH"[col] %></li>
+      <% end %>
+    </ul>
+    <ul class='black-captured'>
+      <% game.captured(:black).each do |piece| %>
+        <li><%= piece.to_html %></li>
       <% end %>
     </ul>
   </board>

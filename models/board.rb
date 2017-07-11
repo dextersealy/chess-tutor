@@ -24,8 +24,8 @@ class Board
       @board.concat([NullPiece.instance] * 32)
       @board.concat(make_pieces(['Pawn'] * 8, :white, 6))
       @board.concat(make_pieces(PIECES, :white, 7))
+      @undo = []
     end
-    @undo = []
   end
 
   def [](pos)
@@ -46,14 +46,12 @@ class Board
     !self[pos].is_a?(NullPiece)
   end
 
-  def in_check?(color)
-    pos = find_king(color)
-    can_any_piece_move_to?(pos)
-  end
-
-  def checkmate?(color)
-    return false unless in_check?(color)
-    all? { |piece| piece.color != color || piece.valid_moves.empty? }
+  def valid_move?(start_pos, end_pos)
+    color = self[start_pos].color
+    move_piece(start_pos, end_pos)
+    valid = !in_check?(color)
+    undo_move
+    valid
   end
 
   def move_piece(start_pos, end_pos)
@@ -79,12 +77,17 @@ class Board
     self[end_pos].current_pos = end_pos
   end
 
-  def valid_move?(start_pos, end_pos)
-    color = self[start_pos].color
-    move_piece(start_pos, end_pos)
-    valid = !in_check?(color)
-    undo_move
-    valid
+  def captured
+    @undo.map { |_, _, piece|  piece }.reject { |piece| piece.nil? }
+  end
+
+  def in_check?(color)
+    can_any_piece_move_to? king_pos_of color
+  end
+
+  def checkmate?(color)
+    return false unless in_check?(color)
+    all? { |piece| piece.color != color || piece.valid_moves.empty? }
   end
 
   def get_threats(pos)
@@ -99,7 +102,12 @@ class Board
   end
 
   def save_state
-    map { |piece| [piece.class.name, piece.color, piece.current_pos] }
+    {
+      pieces: map { |piece| [piece.class.name, piece.color, piece.current_pos] },
+      undo: @undo.map do |start_pos, end_pos, piece|
+        [start_pos, end_pos, piece.nil? ? nil : piece.class.name, piece.color]
+      end
+    }
   end
 
   def to_s
@@ -113,7 +121,7 @@ class Board
   private
   attr_accessor :board
 
-  def find_king(color)
+  def king_pos_of(color)
     return find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
   end
 
@@ -123,11 +131,18 @@ class Board
 
   def restore_state(state)
     return false unless state
+
     @board = [NullPiece.instance] * 64;
-    state.each do |item|
+    state['pieces'].each do |item|
       piece = make_piece(*item)
       self[piece.current_pos] = piece
     end
+
+    @undo = []
+    state['undo'].each do |start_pos, end_pos, classname, color|
+      @undo << [start_pos, end_pos, make_piece(classname, color, end_pos)]
+    end
+
     true
   end
 
@@ -138,6 +153,7 @@ class Board
   end
 
   def make_piece(classname, color, pos)
+    return NullPiece.instance unless classname
     piece = Object.const_get(classname).new(self, color.to_sym)
     piece.current_pos = pos
     piece

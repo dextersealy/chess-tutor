@@ -47,10 +47,16 @@ class ChessController < ControllerBase
   end
 
   def get_board
-    board.reduce(Hash.new) do |accumulator, piece|
-      accumulator[encode(piece.current_pos)] = piece.to_html
-      accumulator
-    end
+    {
+      captured: {
+        game.current_player => game.captured(game.current_player).map(&:to_s),
+        game.next_player => game.captured(game.next_player).map(&:to_s)
+      },
+      board: board.reduce(Hash.new) do |accumulator, piece|
+        accumulator[encode(piece.current_pos)] = piece.to_html
+        accumulator
+      end,
+    }
   end
 
   def get_moves

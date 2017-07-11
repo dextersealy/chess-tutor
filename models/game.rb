@@ -19,6 +19,10 @@ class Game
      @current_player = next_player
   end
 
+  def captured(player)
+    board.captured.select { |piece| piece.color == player }
+  end
+
   def over?
     board.checkmate?(:white) || board.checkmate?(:black)
   end
@@ -44,5 +48,5 @@ class Game
 
   private
 
-  VERSION = 1
+  VERSION = 2
 end

@@ -6,8 +6,8 @@ class Piece
   attr_accessor :color, :current_pos, :board
 
   def initialize(board, color = :white)
-    @color = color
     @board = board
+    @color = color
     @current_pos = nil
   end
 

@@ -12,19 +12,36 @@ class Board {
   //  Start a new game
 
   reset() {
-    $.post('/new').then(pieces => {
-      this.setup(pieces);
+    $.post('/new').then(game => {
+      this.setup(game);
       this.init();
     });
   }
 
   //  Arrange the pieces on the board
 
-  setup(pieces) {
+  setup(game) {
     $('.cell').html(' ')
     $('.selected').toggleClass('selected');
+    this.showActive(game.board);
+    this.showCaptured(game.captured);
+  }
+
+  showActive(pieces) {
     Object.keys(pieces).forEach(loc => {
       $(`#${loc}`).html(pieces[loc])
+    });
+  }
+
+  showCaptured(captured) {
+    Object.keys(captured).forEach(color => {
+      const pieces = captured[color];
+      const $container = $(`.${color}-captured`);
+      $container.toggleClass('empty', pieces.length === 0);
+      $container.find('li').remove();
+      pieces.forEach(piece => {
+        $(`<li>${piece}</li>`).appendTo($container);
+      });
     });
   }
 
