@@ -4,7 +4,7 @@ class App {
     this.board = new Board;
   }
 
-  start() {
+  init() {
     this.board.init();
   }
 

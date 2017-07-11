@@ -11,20 +11,45 @@ class Board {
 
   //  Start a new game
 
+  init() {
+    this.startTurn();
+  }
+
   reset() {
-    $.post('/new').then(game => {
-      this.setup(game);
-      this.init();
+    $.post('/new').then(() => this.startTurn());
+  }
+
+  //  Turns
+
+  startTurn() {
+    this.getBoard().then(board => {
+      this.getNextMoves().then(() => {
+        this.whenDoneFlashing(() => {
+          this.show(board);
+          this.showNextMoves();
+        });
+      });
     });
   }
 
-  //  Arrange the pieces on the board
+  endTurn() {
+    this.stopFlashing();
+    this.hideMoves(false);
+    this.hideThreats(false);
+    this.hideNextMoves(false);
+  }
 
-  setup(game) {
+  //  Display the board
+
+  getBoard() {
+    return $.get('/show');
+  }
+
+  show(board) {
     $('.cell').html(' ')
     $('.selected').toggleClass('selected');
-    this.showActive(game.board);
-    this.showCaptured(game.captured);
+    this.showActive(board.active);
+    this.showCaptured(board.captured);
   }
 
   showActive(pieces) {
@@ -45,12 +70,6 @@ class Board {
     });
   }
 
-  //  Display the board status
-
-  init() {
-    this.getNextMoves().then(() => this.highlightNextMoves());
-  }
-
   //  Retrieve the available moves
 
   getNextMoves() {
@@ -59,27 +78,32 @@ class Board {
     });
   }
 
-  //  Highlight the available moves
-
-  highlightNextMoves() {
-    this.stopFlashing();
-    $('.selected').toggleClass('selected', false);
-    $('.valid').toggleClass('valid', false);
-    $('.threat').toggleClass('threat', false);
-    this.highlightMoveablePieces();
-    this.highlightThreatenedPieces();
+  showNextMoves() {
+    this.showMoveable();
+    this.showThreatened();
   }
 
-  highlightMoveablePieces() {
-    $('.moveable').toggleClass('moveable', false);
+  hideNextMoves() {
+    this.hideMoveable();
+    this.hideThreatened();
+  }
+
+  //  Highlight the available moves
+
+  showMoveable() {
+    this.hideMoveable();
     Object.keys(this.moves.player).forEach(loc => {
       const moveable = Boolean(this.moves.player[loc].length);
       $(`#${loc}`).toggleClass('moveable', moveable);
     });
   }
 
-  highlightThreatenedPieces() {
-    $('.threatened').toggleClass('threatened', false);
+  hideMoveable() {
+    $('.moveable').toggleClass('moveable', false);
+  }
+
+  showThreatened() {
+    this.hideThreatened();
     Object.keys(this.moves.threats).forEach(loc => {
       const $cell = $(`#${loc}`);
       if (this.isPlayerPiece($cell)) {
@@ -88,29 +112,32 @@ class Board {
     });
   }
 
+  hideThreatened() {
+    $('.cell').toggleClass('threatened', false);
+  }
+
   // Hover actions
 
   handleHoverIn(e) {
     const $cell = $(e.target);
-    this.highlightThreats($cell)
+    this.showThreats($cell)
     if (!this.isPieceSelected()) {
-      this.highlightMoves($cell);
+      this.showMoves($cell);
     }
   }
 
   handleHoverOut() {
-    this.unhighlightThreats()
+    this.hideThreats()
     if (!this.isPieceSelected()) {
-      this.unhighlightMoves();
+      this.hideMoves();
     }
   }
 
-  //  Highlight available moves
+  //  Highlight moves for a chess piece
 
-  highlightMoves($piece) {
+  showMoves($piece) {
     if (this.isMoveable($piece)) {
-      $('.cell').toggleClass('valid', false);
-      $('.cell').toggleClass('unsafe', false);
+      this.hideMoves();
       this.getMoves($piece).forEach(loc => {
         const $cell = $(`#${loc}`);
         $cell.toggleClass('valid', true);
@@ -119,19 +146,20 @@ class Board {
     }
   }
 
+  hideMoves() {
+    $('.cell').toggleClass('valid', false);
+    $('.cell').toggleClass('unsafe', false);
+  }
+
   getMoves($piece) {
     return this.moves.player[this.getLoc($piece)] || [];
   }
 
-  unhighlightMoves() {
-    $('.cell').toggleClass('valid', false);
-  }
-
   //  Highlight threatenING pieces
 
-  highlightThreats($cell) {
+  showThreats($cell) {
+    this.hideThreats();
     if (this.hasThreat($cell)) {
-      $('.cell').toggleClass('threat', false);
       const threats = this.moves.threats[this.getLoc($cell)];
       if (threats) {
         threats.forEach(loc => $(` #${loc}`).toggleClass('threat', true));
@@ -140,14 +168,14 @@ class Board {
     }
   }
 
+  hideThreats() {
+    this.stopFlashing();
+    $('.cell').toggleClass('threat', false);
+  }
+
   hasThreat($cell) {
     return this.isThreatened($cell) || (this.isPieceSelected() &&
       this.isUnsafe($cell));
-  }
-
-  unhighlightThreats() {
-    this.stopFlashing();
-    $('.cell').toggleClass('threat', false);
   }
 
   //  Move actions
@@ -166,7 +194,7 @@ class Board {
   startMove($piece) {
     $('.selected').toggleClass('selected', false);
     $piece.toggleClass('selected', true);
-    this.highlightMoves($piece);
+    this.showMoves($piece);
   }
 
   cancelMove() {
@@ -178,15 +206,13 @@ class Board {
     const $from = $('.selected')
     const from = $from.attr('id');
     const to = $to.attr('id');
-    return $.post('/moves', { from, to }).then(moves => {
-      $to.html($from.html());
-      $from.html(' ');
-      this.moves = moves;
-      this.highlightNextMoves();
+    return $.post('/move', { from, to }).then(board => {
+      this.show(board);
     });
   }
 
   makeMove() {
+    this.endTurn();
     $.get('/move').then(move => {
       this.showMove(move.from, move.to);
     });
@@ -205,9 +231,7 @@ class Board {
       window.setTimeout(() => this.stopFlashing(), interval * 4)
     }, interval * 4, $from, $to);
 
-    this.getNextMoves().then(() => {
-      this.whenDoneFlashing(() => this.highlightNextMoves())
-    });
+    this.startTurn();
   }
 
   // Flashing

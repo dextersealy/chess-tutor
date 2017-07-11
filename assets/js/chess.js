@@ -9,5 +9,5 @@ $.ajaxPrefilter(function(options, originalOptions, jqXHR){
 
 $(() => {
   const app = new App;
-  app.start();
+  app.init();
 })

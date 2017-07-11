@@ -7,13 +7,18 @@ class ChessController < ControllerBase
   protect_from_forgery
   after_action :save_game, except: [:show, :moves]
 
-  def show
+  def init
     @game = Game.new(session[:game_state])
     @board = game.board
   end
 
   def new
     @game = Game.new
+    render json: get_board
+  end
+
+  def show
+    @game = Game.new(session[:game_state])
     render json: get_board
   end
 
@@ -25,7 +30,7 @@ class ChessController < ControllerBase
   def move
     @game = Game.new(session[:game_state])
     game.move(decode(params[:from]), decode(params[:to]))
-    render json: get_moves
+    render json: get_board
   end
 
   def make_move
@@ -52,7 +57,7 @@ class ChessController < ControllerBase
         game.current_player => game.captured(game.current_player).map(&:to_s),
         game.next_player => game.captured(game.next_player).map(&:to_s)
       },
-      board: board.reduce(Hash.new) do |accumulator, piece|
+      active: board.reduce(Hash.new) do |accumulator, piece|
         accumulator[encode(piece.current_pos)] = piece.to_html
         accumulator
       end,

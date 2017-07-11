@@ -6,10 +6,11 @@ require_relative 'lib/static'
 
 router = Router.new
 router.draw do
-  get Regexp.new("^/$"), ChessController, :show
+  get Regexp.new("^/$"), ChessController, :init
   post Regexp.new("^/new$"), ChessController, :new
+  get Regexp.new("^/show$"), ChessController, :show
   get Regexp.new("^/moves$"), ChessController, :moves
-  post Regexp.new("^/moves$"), ChessController, :move
+  post Regexp.new("^/move$"), ChessController, :move
   get Regexp.new("^/move$"), ChessController, :make_move
 end
 
