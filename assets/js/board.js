@@ -12,22 +12,20 @@ class Board {
   //  Start a new game
 
   init() {
-    this.startTurn();
+    this.getBoard().then(board => this.startTurn(board));
   }
 
   reset() {
-    $.post('/new').then(() => this.startTurn());
+    $.post('/new').then(board => this.startTurn(board));
   }
 
   //  Turns
 
-  startTurn() {
-    this.getBoard().then(board => {
-      this.getNextMoves().then(() => {
-        this.whenDoneFlashing(() => {
-          this.show(board);
-          this.showNextMoves();
-        });
+  startTurn(board) {
+    this.getNextMoves().then(() => {
+      this.whenDoneFlashing(() => {
+        this.show(board);
+        this.showNextMoves();
       });
     });
   }
@@ -46,15 +44,15 @@ class Board {
   }
 
   show(board) {
-    $('.cell').html(' ')
     $('.selected').toggleClass('selected');
     this.showActive(board.active);
     this.showCaptured(board.captured);
   }
 
   showActive(pieces) {
-    Object.keys(pieces).forEach(loc => {
-      $(`#${loc}`).html(pieces[loc])
+    $('.cell').each(function() {
+      const loc = $(this).attr('id');
+      $(this).html(pieces[loc] || ' ');
     });
   }
 
@@ -91,10 +89,11 @@ class Board {
   //  Highlight the available moves
 
   showMoveable() {
-    this.hideMoveable();
-    Object.keys(this.moves.player).forEach(loc => {
-      const moveable = Boolean(this.moves.player[loc].length);
-      $(`#${loc}`).toggleClass('moveable', moveable);
+    const board = this;
+    $('.cell').each(function() {
+      const loc = $(this).attr('id');
+      const moves = board.moves.player[loc];
+      $(this).toggleClass('moveable', Boolean(moves && moves.length));
     });
   }
 
@@ -103,12 +102,12 @@ class Board {
   }
 
   showThreatened() {
-    this.hideThreatened();
-    Object.keys(this.moves.threats).forEach(loc => {
-      const $cell = $(`#${loc}`);
-      if (this.isPlayerPiece($cell)) {
-        $cell.toggleClass('threatened', true);
-      }
+    const board = this;
+    $('.cell').each(function() {
+      const loc = $(this).attr('id');
+      const threatened = Boolean(board.moves.threats[loc] &&
+        board.isPlayerPiece($(this)));
+      $(this).toggleClass('threatened', threatened);
     });
   }
 
@@ -214,11 +213,11 @@ class Board {
   makeMove() {
     this.endTurn();
     $.get('/move').then(move => {
-      this.showMove(move.from, move.to);
+      this.showMove(move.from, move.to, move.board);
     });
   }
 
-  showMove(from, to) {
+  showMove(from, to, board) {
     const interval = Board.FLASH_INTERVAL / 2;
     const $from = $(`#${from}`);
     const $to = $(`#${to}`);
@@ -231,7 +230,7 @@ class Board {
       window.setTimeout(() => this.stopFlashing(), interval * 4)
     }, interval * 4, $from, $to);
 
-    this.startTurn();
+    this.startTurn(board);
   }
 
   // Flashing

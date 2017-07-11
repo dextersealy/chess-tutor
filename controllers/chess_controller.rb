@@ -37,7 +37,7 @@ class ChessController < ControllerBase
     @game = Game.new(session[:game_state])
     start_pos, end_pos = ComputerPlayer.new(game).get_move
     game.move(start_pos, end_pos)
-    render json: { from: encode(start_pos), to: encode(end_pos) }
+    render json: { from: encode(start_pos), to: encode(end_pos), board: get_board }
   end
 
   private
