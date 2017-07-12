@@ -228,9 +228,8 @@ class Board {
       $from.html(' ');
       this.flash($to, interval / 2);
       window.setTimeout(() => this.stopFlashing(), interval * 4)
+      this.startTurn(board);
     }, interval * 4, $from, $to);
-
-    this.startTurn(board);
   }
 
   // Flashing
