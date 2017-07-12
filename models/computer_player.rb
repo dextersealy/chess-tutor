@@ -14,12 +14,11 @@ class ComputerPlayer < Player
 
   def minmax(max_depth, depth = 0, alpha = -100000, beta = 100000,
     maximizing = true, prefix = "")
-
-    player = maximizing ? self.color : opposite(self.color)
     return nil, board_value if depth >= max_depth
 
     best_move = nil;
     best_value = maximizing ? -99999 : 99999
+    player = maximizing ? self.color : opposite(self.color)
 
     each_move(player) do |move|
       board.move_piece(*move)
