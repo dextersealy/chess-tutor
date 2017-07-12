@@ -95,6 +95,10 @@ content {
   margin-bottom: 5px;
 }
 
+.black-captured:not(.empty) {
+  margin-top: 5px;
+}
+
 .white-captured li, .black-captured li {
   font-size: 30px;
   text-align: center;
@@ -127,16 +131,18 @@ content {
 .row-label, .col-label {
   font-family: serif;
   font-size: 20px;
-  background-color: #F5F5F5;
+  background-color: lightgrey;
 }
 
 .row-label {
-  width: 20px;
-  padding: 20px;
+  width: 30px;
+  padding: 20px 10px 10px 10px;
+  margin-left: 10px;
 }
 
 .col-label {
-  height: 20px;
+  height: 30px;
+  padding-top: 3px
 }
 
 .cell.selected {
@@ -150,7 +156,7 @@ content {
 }
 
 .moveable {
-  background-color: #ffe9b3; /* light yellow */
+  border: 2px solid #E37A00;
 }
 
 .selected, .moveable:hover {
