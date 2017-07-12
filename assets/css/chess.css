@@ -131,9 +131,28 @@ h2 {
 /* Board */
 
 content {
+  position: relative;
   display: flex;
   flex-direction: row;
   margin: 10px auto;
+}
+
+#loader {
+  position: absolute;
+  display: none;
+  z-index: 1;
+  width: 60px;
+  height: 60px;
+  border: 4px solid lightgrey;
+  border-radius: 50%;
+  border-top: 4px solid #FFA741;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .white-captured, .black-captured {

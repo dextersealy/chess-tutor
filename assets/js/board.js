@@ -212,7 +212,9 @@ class Board {
 
   makeMove() {
     this.endTurn();
+    this.startLoader();
     $.get('/move').then(move => {
+      this.stopLoader();
       this.showMove(move.from, move.to, move.board);
     });
   }
@@ -248,6 +250,26 @@ class Board {
     } else {
       func();
     }
+  }
+
+  // Loader
+
+  startLoader() {
+    const $loader = $('#loader');
+    const offset = $loader.offset();
+    const origin = $loader.parent().offset();
+    const center = $('#e4').offset();
+    $loader.css({
+      top: `${center.top - offset.top - 30 - origin.top}px`,
+      left: `${center.left - offset.left - 30 - origin.left}px`
+    });
+    $('#board').css('opacity', '0.80');
+    $loader.toggle();
+  }
+
+  stopLoader() {
+    $('#loader').toggle();
+    $('#board').css('opacity', '1');
   }
 
   //  Utility functions
