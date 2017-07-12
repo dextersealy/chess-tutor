@@ -40,8 +40,30 @@ h1 {
   font-size: 16px;
 }
 
-header a {
-  margin-left: 10px;
+.contact {
+  display: flex;
+  align-items: center;
+}
+
+.contact a, .contact span {
+  display: block;
+}
+
+.contact a {
+  padding: 0 5px;
+}
+
+.contact {
+  margin-right: -5px;
+}
+
+header .contact span {
+  margin-right: 5px;
+}
+
+header .contact a:hover {
+  background-color: #3284AB;
+  border-radius: 4px;
 }
 
 /* Footer */
@@ -60,8 +82,12 @@ footer {
 }
 
 footer .contact a {
-  margin-left: 5px;
   font-size: 16px;
+}
+
+footer .contact a:hover {
+  background-color: #E37A00;
+  border-radius: 4px;
 }
 
 /* Left nav bar */
