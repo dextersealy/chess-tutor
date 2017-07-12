@@ -56,7 +56,7 @@ class Board
   end
 
   def move_piece(start_pos, end_pos)
-    raise InvalidPosition.new unless start_pos.is_a(Array) &&
+    raise InvalidPosition.new unless start_pos.is_a?(Array) &&
       ChessUtil::in_bounds(start_pos) && end_pos.is_a?(Array) &&
       ChessUtil::in_bounds(end_pos)
 
