@@ -7,12 +7,47 @@
     <link rel="stylesheet" type="text/css" href="assets/css/palette.css">
     <link rel="stylesheet" type="text/css" href="assets/css/chess.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://use.fontawesome.com/d33deb2b75.js"></script>
     <script src="assets/js/flasher.js"></script>
     <script src="assets/js/board.js"></script>
     <script src="assets/js/app.js"></script>
     <script src="assets/js/chess.js"></script>
   </head>
   <body>
-    <%= yield %>
+    <header>
+      <h1>Chess Tutor</h1>
+      <div class='contact'>
+        <span class='author'>by Dexter Sealy</span>
+        <a href="https://github.com/dextersealy" target="_blank" alt="GitHub Profile">
+          <i class="fa fa-github"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/dextersealy" target="_blank" alt="LinkedIn Profile">
+          <i class="fa fa-linkedin"></i>
+        </a>
+        <a href="mailto:dsealy@alum.mit.edu" target="_top" alt="Send Mail">
+          <i class="fa fa-envelope-o"></i>
+        </a>
+      </diV>
+    </header>
+    <content>
+      <%= yield %>
+    </content>
+    <footer>
+      <div>
+        Created with <i class="fa fa-heart"></i> by Dexter Sealy with
+        <a class="link" href="https://github.com/dextersealy/ruby-on-tracks">Ruby on Tracks</a>
+      </div>
+      <div class='contact'>
+        <a href="https://github.com/dextersealy" target="_blank" alt="GitHub Profile">
+          <i class="fa fa-github"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/dextersealy" target="_blank" alt="LinkedIn Profile">
+          <i class="fa fa-linkedin"></i>
+        </a>
+        <a href="mailto:dsealy@alum.mit.edu" target="_top" alt="Send Mail">
+          <i class="fa fa-envelope-o"></i>
+        </a>
+      </div>
+    </footer>
   </body>
 </html>

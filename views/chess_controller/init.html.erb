@@ -1,46 +1,39 @@
-<header>
-  <h1>Chess Tutor</h1>
-</header>
-<content>
-  <nav>
-    <button id='start-btn'>Start Over</button>
-  </nav>
-  <board id='board'>
-    <ul class='white-captured'>
-      <% game.captured(:white).each do |piece| %>
-      <li><%= piece.to_html %></li>
-      <% end %>
-    </ul>
-    <% 8.times do |row| %>
-      <% board_color = row.even? ? 'white' : 'black' %>
-      <ul class='board-row'>
-        <li class='row-label'><%= "87654321"[row] %></li>
-        <% 8.times do |col| %>
-          <% pos = [row, col] %>
-          <% piece = @board[pos] %>
-          <li id="<%= encode_pos(pos) %>"
-            class="cell <%="board-#{board_color}"%>"><%= piece.to_html %></li>
-          <% board_color = board_color == 'white' ? 'black' : 'white'%>
-        <% end %>
-      </ul>
+<nav>
+  <button id='start-btn'>Start Over</button>
+</nav>
+<board id='board'>
+  <ul class='white-captured'>
+    <% game.captured(:white).each do |piece| %>
+    <li><%= piece.to_html %></li>
     <% end %>
+  </ul>
+  <% 8.times do |row| %>
+    <% board_color = row.even? ? 'white' : 'black' %>
     <ul class='board-row'>
-      <li class='row-label col-label'/>
+      <li class='row-label'><%= "87654321"[row] %></li>
       <% 8.times do |col| %>
-        <li class='col-label'><%= "abcdefgh"[col] %></li>
+        <% pos = [row, col] %>
+        <% piece = @board[pos] %>
+        <li id="<%= encode_pos(pos) %>"
+          class="cell <%="board-#{board_color}"%>"><%= piece.to_html %></li>
+        <% board_color = board_color == 'white' ? 'black' : 'white'%>
       <% end %>
     </ul>
-    <ul class='black-captured'>
-      <% game.captured(:black).each do |piece| %>
-        <li><%= piece.to_html %></li>
-      <% end %>
-    </ul>
-  </board>
-  <sidebar>
-    <subhead>
-      <h2>Hints</h2>
-    </subhead>
-  </sidebar>
-</content>
-<footer>
-</footer>
+  <% end %>
+  <ul class='board-row'>
+    <li class='row-label col-label'/>
+    <% 8.times do |col| %>
+      <li class='col-label'><%= "abcdefgh"[col] %></li>
+    <% end %>
+  </ul>
+  <ul class='black-captured'>
+    <% game.captured(:black).each do |piece| %>
+      <li><%= piece.to_html %></li>
+    <% end %>
+  </ul>
+</board>
+<sidebar>
+  <subhead>
+    <h2>Hints</h2>
+  </subhead>
+</sidebar>

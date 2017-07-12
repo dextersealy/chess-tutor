@@ -1,13 +1,15 @@
 body, ul, li, div, h1, h2,
 section, header, footer, sidebar, subhead,
-button, row-label, col-label {
+button, row-label, col-label, i, a {
   margin: 0;
   padding: 0;
   border: 0;
   font: inherit;
   background: transparent;
   list-style: none;
+  text-decoration: none;
   box-sizing: border-box;
+  color: inherit;
 }
 
 body {
@@ -17,22 +19,49 @@ body {
   margin: 10px;
 }
 
-/* Header and footer */
+/* Header */
 
 header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
   background-color: #076390;
-  padding: 10px;
-}
-
-footer {
-  background-color: #FFA741;
+  font-size: 20px;
   padding: 10px;
 }
 
 h1 {
-  color: white;
-  font-size: 16px;
+  font-weight: bold;
   text-transform: uppercase;
+}
+
+.author {
+  font-size: 16px;
+}
+
+header a {
+  margin-left: 10px;
+}
+
+/* Footer */
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #FFA741;
+  font-size: 12px;
+  padding: 10px;
+}
+
+.link {
+  text-decoration: underline;
+}
+
+footer .contact a {
+  margin-left: 5px;
+  font-size: 16px;
 }
 
 /* Left nav bar */
