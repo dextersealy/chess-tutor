@@ -131,7 +131,10 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self)
 
   //  pawn's capture moves
 
-  int step = (color == 'b') ? 1 : -1;
+  int step = 1;
+  if (color == 'w') {
+    step = -1;
+  }
   if (valid_pos(board, row + step, col - 1, color) &&
     occupied(board, row + step, col - 1)) {
     add_move(moves, row + step, col - 1);
