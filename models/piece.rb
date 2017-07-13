@@ -20,7 +20,7 @@ class Piece
   end
 
   def valid_moves
-    moves.select { |pos| valid_move?(pos) }
+    moves.select { |pos| board.valid_move?(current_pos, pos) }
   end
 
   def nil?
@@ -43,10 +43,6 @@ class Piece
   }
 
   private
-
-  def valid_move?(pos)
-    board[pos].color != color && board.valid_move?(current_pos, pos)
-  end
 
   def valid_pos?(pos)
     ChessUtil::in_bounds(pos) && board[pos].color != self.color

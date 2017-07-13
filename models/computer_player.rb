@@ -1,4 +1,5 @@
 require_relative 'player'
+require_relative 'util'
 
 class ComputerPlayer < Player
   def get_move
@@ -22,8 +23,8 @@ class ComputerPlayer < Player
 
     each_move(player) do |move|
       board.move_piece(*move)
-      _, value = minmax(max_depth, depth + 1, alpha, beta, !maximizing,
-        prefix + "#{encode(*move)}, ")
+      _, value = minmax(max_depth, depth + 1, alpha, beta, !maximizing)
+        # prefix + "#{encode(*move)}, ")
       board.undo_move
 
       if maximizing
@@ -47,10 +48,7 @@ class ComputerPlayer < Player
   end
 
   def encode(start_pos, end_pos)
-    axis = ["87654321", "abcdefgh"]
-    from = axis.zip(start_pos).map { |letters, idx| letters[idx] }.reverse.join
-    to = axis.zip(end_pos).map { |letters, idx| letters[idx] }.reverse.join
-    "#{from} => #{to}"
+    "#{encode_pos(start_pos)} => #{encode_pos(end_pos)}"
   end
 
   def opposite(color)

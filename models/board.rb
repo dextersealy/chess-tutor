@@ -34,11 +34,6 @@ class Board
     board[row * 8 + col]
   end
 
-  def []=(pos, piece)
-    row, col = pos
-    board[row * 8 + col] = piece
-  end
-
   def each
     board.each { |piece| yield piece unless piece.nil? }
   end
@@ -119,6 +114,11 @@ class Board
   private
 
   attr_accessor :board
+
+  def []=(pos, piece)
+    row, col = pos
+    board[row * 8 + col] = piece
+  end
 
   def make_pieces(factory_array, color, row)
     factory_array.map.with_index do |class_, idx|
