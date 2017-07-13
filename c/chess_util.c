@@ -114,16 +114,17 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self)
   int row = NUM2INT(rb_ary_entry(pos, 0));
   int col = NUM2INT(rb_ary_entry(pos, 1));
   char color = color_at(board, row, col);
+  int step = (color == 'b') ? 1 : -1;
 
   VALUE moves = rb_ary_new();
 
   //  pawn's step moves
 
   int on_home_row = (color == 'b' && row == 1) || (color == 'w' && row == 6);
-  for (int step = 1; step <= (on_home_row ? 2 : 1); step++) {
-    int new_row = (color == 'b') ? row + step : row - step;
-    if (valid_pos(board, new_row, col, color) && !occupied(board, new_row, col)) {
-      add_move(moves, new_row, col);
+  for (int dy = step, n = on_home_row ? 2 : 1; n--; dy += step) {
+    if (valid_pos(board, row + dy, col, color) &&
+      !occupied(board, row + dy, col)) {
+      add_move(moves, row + dy, col);
     } else {
       break;
     }
@@ -131,10 +132,6 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self)
 
   //  pawn's capture moves
 
-  int step = 1;
-  if (color == 'w') {
-    step = -1;
-  }
   if (valid_pos(board, row + step, col - 1, color) &&
     occupied(board, row + step, col - 1)) {
     add_move(moves, row + step, col - 1);
