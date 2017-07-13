@@ -30,8 +30,7 @@ class Board
   end
 
   def [](pos)
-    row, col = pos
-    board[row * 8 + col]
+    ChessUtil::get_piece_at(@board, pos)
   end
 
   def each
@@ -54,7 +53,6 @@ class Board
     raise InvalidPosition.new unless start_pos.is_a?(Array) &&
       ChessUtil::in_bounds(start_pos) && end_pos.is_a?(Array) &&
       ChessUtil::in_bounds(end_pos)
-
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
     @undo << [start_pos, end_pos, self[end_pos]]
@@ -62,17 +60,18 @@ class Board
     piece = self[start_pos]
     self[end_pos] = piece
     piece.current_pos = end_pos
-
     self[start_pos] = NullPiece.instance
   end
 
   def undo_move
     return if @undo.empty?
+
     start_pos, end_pos, piece = @undo.pop
     self[start_pos] = self[end_pos]
     self[start_pos].current_pos = start_pos
     self[end_pos] = piece
     self[end_pos].current_pos = end_pos
+
   end
 
   def captured
@@ -89,17 +88,19 @@ class Board
   end
 
   def get_threats(pos)
-    select { |piece| piece.valid_moves.include?(pos) }
+    player = self[pos].color
+    select { |piece| piece.color != player && piece.valid_moves.include?(pos) }
   end
 
   def get_move_threats(start_pos, end_pos)
+    player = self[start_pos].color
     move_piece(start_pos, end_pos)
-    threats = select { |piece| piece.moves.include?(end_pos) }
+    threats = select { |piece| piece.color != player && piece.moves.include?(end_pos) }
     undo_move
     threats
   end
 
-  def save_state
+  def state
     encode
   end
 

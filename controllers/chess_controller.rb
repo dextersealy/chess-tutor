@@ -50,7 +50,7 @@ class ChessController < ControllerBase
   end
 
   def save_game
-    session[:game_state] = game.save_state
+    session[:game_state] = game.state
   end
 
   def get_board

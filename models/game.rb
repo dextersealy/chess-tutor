@@ -33,8 +33,8 @@ class Game
     nil
   end
 
-  def save_state
-    { 'V' => VERSION, 'B' => @board.save_state, 'P' => current_player }
+  def state
+    { 'V' => VERSION, 'B' => @board.state, 'P' => current_player }
   end
 
   def next_player
