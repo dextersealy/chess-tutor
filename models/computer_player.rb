@@ -60,7 +60,7 @@ class ComputerPlayer < Player
   end
 
   def each_move(color, &block)
-    moves = get_valid_moves(color).reject { |_, v| v.empty? }
+    moves = valid_moves(color).reject { |_, v| v.empty? }
     moves.each do |start_pos, ends|
       ends.each do |end_pos|
         block.call([start_pos, end_pos])

@@ -5,7 +5,7 @@ class Player
     @color = color || game.current_player
   end
 
-  def get_valid_moves(player_color = self.color)
+  def valid_moves(player_color = self.color)
     board.reduce(Hash.new) do |accumulator, piece|
       next accumulator unless piece.color == player_color
       accumulator[piece.current_pos] = piece.valid_moves
@@ -13,10 +13,10 @@ class Player
     end
   end
 
-  def get_threats
+  def threats
     board.reduce(Hash.new) do |accumulator, piece|
       next accumulator unless piece.color == color
-      threats = board.get_threats(piece.current_pos)
+      threats = board.threats(piece.current_pos)
       next accumulator if threats.empty?
       accumulator[piece.current_pos] = threats.map { |t| t.current_pos }
       accumulator

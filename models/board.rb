@@ -87,12 +87,12 @@ class Board
     all? { |piece| piece.color != color || piece.valid_moves.empty? }
   end
 
-  def get_threats(pos)
+  def threats(pos)
     player = self[pos].color
     select { |piece| piece.color != player && piece.valid_moves.include?(pos) }
   end
 
-  def get_move_threats(start_pos, end_pos)
+  def move_threats(start_pos, end_pos)
     player = self[start_pos].color
     move_piece(start_pos, end_pos)
     threats = select { |piece| piece.color != player && piece.moves.include?(end_pos) }
