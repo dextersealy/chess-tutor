@@ -58,7 +58,7 @@ static int *get_delta(const char *dir_name) {
 //  Piece tables for evaluating boards
 
 static struct piece_table {
-  char *type;
+  const char *type;
   int base;
   int loc[64];
 } PIECE_TABLES[] = {
