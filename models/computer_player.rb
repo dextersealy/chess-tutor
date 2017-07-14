@@ -9,7 +9,10 @@ class ComputerPlayer < Player
   private
 
   def calculate_move
+    t1 = Time.now
+    @move_count = 0
     best_move, _ = minmax(3)
+    puts "examined #{@move_count} moves in #{'%.02f' % (Time.now - t1)}s"
     best_move
   end
 
@@ -23,6 +26,7 @@ class ComputerPlayer < Player
 
     each_move(player) do |move|
       board.move_piece(*move)
+      @move_count += 1
       _, value = minmax(max_depth, depth + 1, alpha, beta, !maximizing)
         # prefix + "#{encode(*move)}, ")
       board.undo_move

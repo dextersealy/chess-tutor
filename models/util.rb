@@ -28,14 +28,11 @@ def decode_piece(letter, pos)
 end
 
 def encode_pos(pos)
-  row, col = pos
-  "abcdefgh"[col] + "87654321"[row]
+  pos ? 'abcdefgh'[pos[0]] + '87654321'[pos[1]] : ''
 end
 
-def decode_pos(coord)
-  col = "abcdefgh".index(coord[0])
-  row = "87654321".index(coord[1])
-  [row, col]
+def decode_pos(loc)
+  ['abcdefgh'.index(loc[0]), '87654321'.index(loc[1])]
 end
 
 def make_piece(classname, color, pos = nil)

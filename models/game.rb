@@ -15,8 +15,8 @@ class Game
   end
 
   def move(from, to)
-     board.move_piece(from, to)
-     @current_player = next_player
+    board.move_piece(from, to)
+    @current_player = next_player
   end
 
   def captured(player)
