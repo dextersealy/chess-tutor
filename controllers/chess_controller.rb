@@ -37,7 +37,7 @@ class ChessController < ControllerBase
   def make_move
     @game = Game.new(session[:game_state])
     start_pos, end_pos = ComputerPlayer.new(game).get_move
-    game.move(start_pos, end_pos)
+    game.move(start_pos, end_pos) if start_pos && end_pos
     render json: { from: encode_pos(start_pos), to: encode_pos(end_pos),
       board: get_board }
   end
