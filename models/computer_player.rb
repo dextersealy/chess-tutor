@@ -1,5 +1,6 @@
 require_relative 'player'
 require_relative 'util'
+require_relative '../c/chess_util'
 
 class ComputerPlayer < Player
   def get_move
@@ -51,14 +52,6 @@ class ComputerPlayer < Player
     return best_move, best_value
   end
 
-  def encode(start_pos, end_pos)
-    "#{encode_pos(start_pos)} => #{encode_pos(end_pos)}"
-  end
-
-  def opposite(color)
-    color == :black ? :white : :black
-  end
-
   def each_move(color, &block)
     moves = valid_moves(color).reject { |_, v| v.empty? }
     moves.each do |start_pos, ends|
@@ -69,94 +62,14 @@ class ComputerPlayer < Player
   end
 
   def board_value
-    board.inject(0) { |sum, piece| sum + value_of(piece) }
+    ChessUtil::get_board_value(board, self.color)
   end
 
-  def value_of(piece)
-    value = case piece.class.name
-    when 'Pawn'
-      100
-    when 'Knight', 'Bishop'
-      300
-    when 'Rook'
-      500
-    when 'Queen'
-      900
-    when 'King'
-      9000
-    end
-    value += location_value_of(piece)
-    (self.color == piece.color) ? value : -value
+  def opposite(color)
+    color == :black ? :white : :black
   end
 
-  def location_value_of(piece)
-    row, col = piece.current_pos
-    table = PIECE_TABLES[piece.class.name]
-    table = table.reverse if piece.color == :black
-    table[row][col]
+  def encode(start_pos, end_pos)
+    "#{encode_pos(start_pos)} => #{encode_pos(end_pos)}"
   end
-
-  PIECE_TABLES = {
-    'Pawn' => [
-      [0,   0,  0,  0,  0,  0,  0,  0],
-      [50, 50, 50, 50, 50, 50, 50, 50],
-      [10, 10, 20, 30, 30, 20, 10, 10],
-      [0,   0,  0, 20, 20,  0,  0,  0],
-      [5,   5, 10, 25, 25, 10,  5,  5],
-      [5,  -5,-10,  0,  0,-10, -5,  5],
-      [5,  10, 10,-20,-20, 10, 10,  5],
-      [0,   0,  0,  0,  0,  0,  0,  0]
-    ],
-    'Knight' => [
-      [-50,-40,-30,-30,-30,-30,-40,-50],
-      [-40,-20,  0,  0,  0,  0,-20,-40],
-      [-30,  0, 10, 15, 15, 10,  0,-30],
-      [-30,  5, 15, 20, 20, 15,  5,-30],
-      [-30,  0, 15, 20, 20, 15,  0,-30],
-      [-30,  5, 10, 15, 15, 10,  5,-30],
-      [-40,-20,  0,  5,  5,  0,-20,-40],
-      [-50,-40,-30,-30,-30,-30,-40,-50]
-    ],
-    'Bishop' => [
-      [-20,-10,-10,-10,-10,-10,-10,-20],
-      [-10,  0,  0,  0,  0,  0,  0,-10],
-      [-10,  0,  5, 10, 10,  5,  0,-10],
-      [-10,  5,  5, 10, 10,  5,  5,-10],
-      [-10,  0, 10, 10, 10, 10,  0,-10],
-      [-10, 10, 10, 10, 10, 10, 10,-10],
-      [-10,  5,  0,  0,  0,  0,  5,-10],
-      [-20,-10,-10,-10,-10,-10,-10,-20]
-    ],
-    'Rook' => [
-      [ 0,  0,  0,  0,  0,  0,  0,  0],
-      [ 5, 10, 10, 10, 10, 10, 10,  5],
-      [-5,  0,  0,  0,  0,  0,  0, -5],
-      [-5,  0,  0,  0,  0,  0,  0, -5],
-      [-5,  0,  0,  0,  0,  0,  0, -5],
-      [-5,  0,  0,  0,  0,  0,  0, -5],
-      [-5,  0,  0,  0,  0,  0,  0, -5],
-      [ 0,  0,  0,  5,  5,  0,  0,  0]
-    ],
-    'Queen' => [
-      [-20,-10,-10, -5, -5,-10,-10,-20],
-      [-10,  0,  0,  0,  0,  0,  0,-10],
-      [-10,  0,  5,  5,  5,  5,  0,-10],
-      [ -5,  0,  5,  5,  5,  5,  0, -5],
-      [  0,  0,  5,  5,  5,  5,  0, -5],
-      [-10,  5,  5,  5,  5,  5,  0,-10],
-      [-10,  0,  5,  0,  0,  0,  0,-10],
-      [-20,-10,-10, -5, -5,-10,-10,-20]
-    ],
-    'King' => [
-      [-30,-40,-40,-50,-50,-40,-40,-30],
-      [-30,-40,-40,-50,-50,-40,-40,-30],
-      [-30,-40,-40,-50,-50,-40,-40,-30],
-      [-30,-40,-40,-50,-50,-40,-40,-30],
-      [-20,-30,-30,-40,-40,-30,-30,-20],
-      [-10,-20,-20,-20,-20,-20,-20,-10],
-      [ 20, 20,  0,  0,  0,  0, 20, 20],
-      [ 20, 30, 10,  0,  0, 10, 30, 20]
-    ]
-  }
-
 end

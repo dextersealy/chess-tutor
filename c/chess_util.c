@@ -55,12 +55,119 @@ static int *get_delta(const char *dir_name) {
   return 0;
 }
 
+//  Piece tables for evaluating boards
+
+static struct piece_table {
+  char *type;
+  int base;
+  int loc[64];
+} PIECE_TABLES[] = {
+  { "Pawn", 100, {
+    0,   0,  0,  0,  0,  0,  0,  0,
+    50, 50, 50, 50, 50, 50, 50, 50,
+    10, 10, 20, 30, 30, 20, 10, 10,
+    0,   0,  0, 20, 20,  0,  0,  0,
+    5,   5, 10, 25, 25, 10,  5,  5,
+    5,  -5,-10,  0,  0,-10, -5,  5,
+    5,  10, 10,-20,-20, 10, 10,  5,
+    0,   0,  0,  0,  0,  0,  0,  0
+  }},
+  { "Knight", 300, {
+    -50,-40,-30,-30,-30,-30,-40,-50,
+    -40,-20,  0,  0,  0,  0,-20,-40,
+    -30,  0, 10, 15, 15, 10,  0,-30,
+    -30,  5, 15, 20, 20, 15,  5,-30,
+    -30,  0, 15, 20, 20, 15,  0,-30,
+    -30,  5, 10, 15, 15, 10,  5,-30,
+    -40,-20,  0,  5,  5,  0,-20,-40,
+    -50,-40,-30,-30,-30,-30,-40,-50
+  }},
+  { "Bishop", 300, {
+    -20,-10,-10,-10,-10,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5, 10, 10,  5,  0,-10,
+    -10,  5,  5, 10, 10,  5,  5,-10,
+    -10,  0, 10, 10, 10, 10,  0,-10,
+    -10, 10, 10, 10, 10, 10, 10,-10,
+    -10,  5,  0,  0,  0,  0,  5,-10,
+    -20,-10,-10,-10,-10,-10,-10,-20
+  }},
+  { "Rook", 500, {
+     0,  0,  0,  0,  0,  0,  0,  0,
+     5, 10, 10, 10, 10, 10, 10,  5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+     0,  0,  0,  5,  5,  0,  0,  0
+  }},
+  { "Queen", 900, {
+    -20,-10,-10, -5, -5,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5,  5,  5,  5,  0,-10,
+     -5,  0,  5,  5,  5,  5,  0, -5,
+      0,  0,  5,  5,  5,  5,  0, -5,
+    -10,  5,  5,  5,  5,  5,  0,-10,
+    -10,  0,  5,  0,  0,  0,  0,-10,
+    -20,-10,-10, -5, -5,-10,-10,-20
+  }},
+  { "King", 9000, {
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -20,-30,-30,-40,-40,-30,-30,-20,
+    -10,-20,-20,-20,-20,-20,-20,-10,
+     20, 20,  0,  0,  0,  0, 20, 20,
+     20, 30, 10,  0,  0, 10, 30, 20
+  }}
+};
+
+//  Retrieve the table for a piece
+
+struct piece_table *get_piece_table(const char *type) {
+  for (int i = 0, n = sizeof(PIECE_TABLES) / sizeof(PIECE_TABLES[0]); i < n; i++) {
+    if (strcmp(type, PIECE_TABLES[i].type) == 0) {
+      return &PIECE_TABLES[i];
+    };
+  }
+  return 0;
+}
+
+//  Calculate the value of a piece to a player; offset is the piece'slinear
+//  board position (i.e., row * 8 + col)
+
+int get_piece_value(VALUE piece, int offset, const char *player) {
+  int value = 0;
+
+  struct piece_table *table = 0;
+  const char *type = rb_obj_classname(piece);
+  if (strcmp(type, "NullPiece") == 0) {
+    return value;
+  }
+
+  if ((table = get_piece_table(type)) != 0) {
+    const char* piece_color = rb_id2name(SYM2ID(rb_iv_get(piece, "@color")));
+    value = table->base;
+    if (strcmp(piece_color, "black") == 0) { // reverse the table for black
+      value += table->loc[63 - offset];
+    } else {
+      value += table->loc[offset];
+    }
+    if (strcmp(piece_color, player) != 0) {
+      value = -value;
+    }
+  }
+
+  return value;
+}
+
 //  M o d u l e   i n t e r f a c e
 
 //  Test if a position is on the board
 
-static VALUE in_bounds(int argc, VALUE *argv, VALUE self)
-{
+static VALUE in_bounds(int argc, VALUE *argv, VALUE self) {
   VALUE pos = argv[0];
   int row = NUM2INT(rb_ary_entry(pos, 0));
   int col = NUM2INT(rb_ary_entry(pos, 1));
@@ -73,8 +180,7 @@ static VALUE in_bounds(int argc, VALUE *argv, VALUE self)
 
 //  Retrieve a piece on the board
 
-static VALUE get_piece_at(int argc, VALUE *argv, VALUE self)
-{
+static VALUE get_piece_at(int argc, VALUE *argv, VALUE self) {
   VALUE board = argv[0];
   VALUE pos = argv[1];
   int row = NUM2INT(rb_ary_entry(pos, 0));
@@ -84,8 +190,9 @@ static VALUE get_piece_at(int argc, VALUE *argv, VALUE self)
 
 //  Generate moves for a stepping (K) or sliding piece (N, R, B, Q)
 
-static VALUE get_moves(int argc, VALUE *argv, VALUE self)
-{
+static VALUE get_moves(int argc, VALUE *argv, VALUE self) {
+  VALUE moves = rb_ary_new();
+
   VALUE pos = argv[0];
   VALUE ary = argv[1];
   VALUE stepping = strcmp(rb_id2name(SYM2ID(argv[2])), "step") == 0;
@@ -94,7 +201,6 @@ static VALUE get_moves(int argc, VALUE *argv, VALUE self)
   int start_row = NUM2INT(rb_ary_entry(pos, 0));
   int start_col = NUM2INT(rb_ary_entry(pos, 1));
 
-  VALUE moves = rb_ary_new();
   if (is_valid_pos(board, start_row, start_col, 0)) {
     char color = get_color_at(board, start_row, start_col);
     for (int i = 0, n = RARRAY_LEN(ary); i < n; i++) {
@@ -112,13 +218,15 @@ static VALUE get_moves(int argc, VALUE *argv, VALUE self)
       }
     }
   }
+
   return moves;
 }
 
 //  Generate the moves for a pawn
 
-static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self)
-{
+static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self) {
+  VALUE moves = rb_ary_new();
+
   VALUE pos = argv[0];
   VALUE board = argv[1];
   int row = NUM2INT(rb_ary_entry(pos, 0));
@@ -126,7 +234,6 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self)
   char color = get_color_at(board, row, col);
   int step = (color == 'b') ? 1 : -1;
 
-  VALUE moves = rb_ary_new();
 
   //  pawn's step moves
 
@@ -156,11 +263,12 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self)
 
 //  Generate moves for a knight
 
-static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self)
-{
+static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self) {
   static int MOVES[][2] = {
     {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}
   };
+
+  VALUE moves = rb_ary_new();
 
   VALUE pos = argv[0];
   VALUE board = argv[1];
@@ -168,26 +276,43 @@ static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self)
   int col = NUM2INT(rb_ary_entry(pos, 1));
   char color = get_color_at(board, row, col);
 
-  VALUE moves = rb_ary_new();
   for (int i = 0, n = sizeof(MOVES) / sizeof(MOVES[0]); i < n; i++) {
     int dy = MOVES[i][0], dx = MOVES[i][1];
     if (is_valid_pos(board, row + dy, col + dx, color)) {
       add_move(moves, row + dy, col + dx);
     }
   }
+
   return moves;
 }
 
+//  Calculate the value of a board
+
+static VALUE get_board_value(int argc, VALUE *argv, VALUE self) {
+  int value = 0;
+
+  VALUE board = rb_iv_get(argv[0], "@board");
+  const char *player = rb_id2name(SYM2ID(argv[1]));
+
+  for (int i = 0; i < 64; i++) {
+    value += get_piece_value(rb_ary_entry(board, i), i, player);
+  }
+
+  return INT2NUM(value);
+}
+
+//  M o d u l e  s e t u p
+
+//  Initialization function called by Ruby
+
 static VALUE rbModule;
 
-//  Module initialization function called by Ruby
-
-void Init_chess_util()
-{
+void Init_chess_util() {
 	rbModule = rb_define_module("ChessUtil");
   rb_define_module_function(rbModule, "in_bounds", in_bounds, -1);
   rb_define_module_function(rbModule, "get_piece_at", get_piece_at, -1);
   rb_define_module_function(rbModule, "get_moves", get_moves, -1);
   rb_define_module_function(rbModule, "get_pawn_moves", get_pawn_moves, -1);
   rb_define_module_function(rbModule, "get_knight_moves", get_knight_moves, -1);
+  rb_define_module_function(rbModule, "get_board_value", get_board_value, -1);
 }
