@@ -19,7 +19,7 @@ int is_occupied(VALUE board, int row, int col) {
   return get_color_at(board, row, col) != ' ';
 }
 
-//  Test if board position is valid and, empty or is_occupied by
+//  Test if board position is valid and is empty or is_occupied by
 //  an opposing piece
 
 int is_valid_pos(VALUE board, int row, int col, char piece) {
@@ -135,7 +135,7 @@ struct piece_table *get_piece_table(const char *type) {
   return 0;
 }
 
-//  Calculate the value of a piece to a player; offset is the piece'slinear
+//  Calculate the value of a piece to a player; offset is the piece's linear
 //  board position (i.e., row * 8 + col)
 
 int get_piece_value(VALUE piece, int offset, const char *player) {
