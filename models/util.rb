@@ -1,4 +1,4 @@
-require_relative 'null'
+require_relative 'null.rb'
 
 def encode_piece(piece)
   return ' ' if piece.nil?

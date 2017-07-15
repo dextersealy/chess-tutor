@@ -1,5 +1,5 @@
-require_relative 'player'
-require_relative 'util'
+require_relative 'player.rb'
+require_relative 'util.rb'
 require_relative '../c/chess_util'
 
 class ComputerPlayer < Player

@@ -200,15 +200,23 @@ static VALUE in_bounds(int argc, VALUE *argv, VALUE self) {
   return Qfalse;
 }
 
-//  Retrieve a piece on the board; take Board object and array with
+//  Retrieve a piece on the board; takes array of pieces, and array with
 //  [row, col] coordinates
 
 static VALUE get_piece_at(int argc, VALUE *argv, VALUE self) {
-  VALUE ary = rb_iv_get(argv[0], "@board");
-  VALUE pos = argv[1];
-  int row = NUM2INT(rb_ary_entry(pos, 0));
-  int col = NUM2INT(rb_ary_entry(pos, 1));
-  return rb_ary_entry(ary, row * 8 + col);
+  int row = NUM2INT(rb_ary_entry(argv[1], 0));
+  int col = NUM2INT(rb_ary_entry(argv[1], 1));
+  return rb_ary_entry(argv[0], row * 8 + col);
+}
+
+//  Set a piece on the board; takes array of pieces, array with
+//  [row, col] coordinates, and Piece
+
+static VALUE set_piece_at(int argc, VALUE *argv, VALUE self) {
+  int row = NUM2INT(rb_ary_entry(argv[1], 0));
+  int col = NUM2INT(rb_ary_entry(argv[1], 1));
+  rb_ary_store(argv[0], row * 8 + col, argv[2]);
+  return argv[2];
 }
 
 //  Generate moves for a stepping or sliding piece; takes Piece object,
@@ -385,6 +393,7 @@ void Init_chess_util() {
 	rbModule = rb_define_module("ChessUtil");
   rb_define_module_function(rbModule, "in_bounds", in_bounds, -1);
   rb_define_module_function(rbModule, "get_piece_at", get_piece_at, -1);
+  rb_define_module_function(rbModule, "set_piece_at", set_piece_at, -1);
   rb_define_module_function(rbModule, "get_moves", get_moves, -1);
   rb_define_module_function(rbModule, "get_pawn_moves", get_pawn_moves, -1);
   rb_define_module_function(rbModule, "get_knight_moves", get_knight_moves, -1);

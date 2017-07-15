@@ -1,13 +1,13 @@
-require_relative 'piece'
-require_relative 'rook'
-require_relative 'knight'
-require_relative 'king'
-require_relative 'queen'
-require_relative 'pawn'
-require_relative 'bishop'
-require_relative 'null'
-require_relative 'errors'
-require_relative 'util'
+require_relative 'piece.rb'
+require_relative 'rook.rb'
+require_relative 'knight.rb'
+require_relative 'king.rb'
+require_relative 'queen.rb'
+require_relative 'pawn.rb'
+require_relative 'bishop.rb'
+require_relative 'null.rb'
+require_relative 'errors.rb'
+require_relative 'util.rb'
 require_relative '../c/chess_util'
 
 class Board
@@ -30,7 +30,7 @@ class Board
   end
 
   def [](pos)
-    ChessUtil::get_piece_at(self, pos)
+    ChessUtil::get_piece_at(@board, pos)
   end
 
   def each
@@ -137,8 +137,7 @@ class Board
   attr_accessor :board
 
   def []=(pos, piece)
-    row, col = pos
-    board[row * 8 + col] = piece
+    ChessUtil::set_piece_at(@board, pos, piece)
   end
 
   def make_pieces(factory_array, color, row)
