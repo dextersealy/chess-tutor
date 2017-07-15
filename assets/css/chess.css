@@ -257,7 +257,7 @@ content {
   background: linear-gradient(to bottom right, #ffe9b3, LightPink);
 }
 
-.moveable.threatened:hover {
+.selected.threatened, .moveable.threatened:hover {
   background: linear-gradient(to bottom right, #fff280, #ff99a8);
 }
 
