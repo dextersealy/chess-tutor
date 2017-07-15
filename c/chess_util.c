@@ -8,7 +8,8 @@ static VALUE get_board_ary(VALUE piece) {
   return rb_iv_get(rb_iv_get(piece, "@board"), "@board");
 }
 
-//  Get color of piece
+//  Get color of board piece; returns 'b' and 'w' for black and white
+//  pieces and ' ' for empty space
 
 static char get_color_at(VALUE board_ary, int row, int col) {
   VALUE piece = rb_ary_entry(board_ary, row * 8 + col);
@@ -19,7 +20,8 @@ static char get_color_at(VALUE board_ary, int row, int col) {
 //  Test if board position contains a piece
 
 static int is_occupied(VALUE board_ary, int row, int col) {
-  return get_color_at(board_ary, row, col) != ' ';
+  VALUE piece = rb_ary_entry(board_ary, row * 8 + col);
+  return strcmp(rb_obj_classname(piece), "NullPiece") != 0;
 }
 
 //  Test if board position is valid move for a color
@@ -140,25 +142,18 @@ struct piece_table *get_piece_table(const char *type) {
 //  Calculate the value of a piece to a player; offset is the piece's linear
 //  board position (i.e., row * 8 + col)
 
-int get_piece_value(VALUE piece, int offset, const char *player) {
+int get_piece_value(VALUE piece, int offset, char player) {
   int value = 0;
 
-  struct piece_table *table = 0;
   const char *type = rb_obj_classname(piece);
-  if (strcmp(type, "NullPiece") == 0) {
-    return value;
-  }
-
-  if ((table = get_piece_table(type)) != 0) {
-    const char* piece_color = rb_id2name(SYM2ID(rb_iv_get(piece, "@color")));
-    value = table->base;
-    if (strcmp(piece_color, "black") == 0) { // reverse the table for black
-      value += table->loc[63 - offset];
-    } else {
-      value += table->loc[offset];
-    }
-    if (strcmp(piece_color, player) != 0) {
-      value = -value;
+  if (strcmp(type, "NullPiece") != 0) {
+    struct piece_table *table = get_piece_table(type);
+    if (table) {
+      char color = *rb_id2name(SYM2ID(rb_iv_get(piece, "@color")));
+      value = table->base + table->loc[(color == 'w') ? offset : (63 - offset)];
+      if (color != player) {
+        value = -value;
+      }
     }
   }
 
@@ -350,7 +345,7 @@ static VALUE get_castle_moves(int argc, VALUE *argv, VALUE self) {
 static VALUE get_board_value(int argc, VALUE *argv, VALUE self) {
   int value = 0;
   VALUE board_ary = rb_iv_get(argv[0], "@board");
-  const char *player = rb_id2name(SYM2ID(argv[1]));
+  char player = *rb_id2name(SYM2ID(argv[1]));
 
   for (int i = 0; i < 64; i++) {
     value += get_piece_value(rb_ary_entry(board_ary, i), i, player);
