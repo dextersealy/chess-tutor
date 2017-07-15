@@ -44,9 +44,9 @@ class Board
   def valid_move?(start_pos, end_pos)
     color = self[start_pos].color
     move_piece(start_pos, end_pos)
-    valid = !in_check?(color)
+    result = !in_check?(color)
     undo_move
-    valid
+    result
   end
 
   def move_piece(start_pos, end_pos)
@@ -55,43 +55,27 @@ class Board
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
     piece = self[start_pos]
-    @undo << [start_pos, end_pos, self[end_pos], piece.moved]
+    castle(start_pos, end_pos) if castling(piece, start_pos, end_pos)
 
+    @undo << [start_pos, end_pos, self[end_pos], piece.moved]
     self[end_pos] = piece
     piece.current_pos = end_pos
     self[start_pos] = NullPiece.instance
-
-    if piece.is_a?(King) && (end_pos.last - start_pos.last).abs > 1
-      row, col = end_pos
-      if (col > start_pos.last)
-        start_pos = [row, 7]
-        end_pos = [row, col - 1]
-      else
-        start_pos = [row, 0]
-        end_pos = [row, col + 1]
-      end
-      rook = self[start_pos]
-      @undo << [start_pos, end_pos, nil, false]
-
-      self[end_pos] = rook
-      self[start_pos] = NullPiece.instance
-      rook.current_pos = end_pos
-    end
   end
 
   def undo_move
     return if @undo.empty?
-    start_pos, end_pos, piece, moved_state = @undo.pop
+    start_pos, end_pos, captured, moved_state = @undo.pop
 
-    undid = self[end_pos]
-    self[start_pos] = undid
-    undid.current_pos = start_pos
-    undid.moved = moved_state
+    piece = self[end_pos]
+    self[start_pos] = piece
+    piece.current_pos = start_pos
+    piece.moved = moved_state
 
-    self[end_pos] = piece || NullPiece.instance
-    piece.current_pos = end_pos if piece
+    self[end_pos] = captured
+    captured.current_pos = end_pos
 
-    undo_move unless piece
+    undo_move if castling(piece, start_pos, end_pos)
   end
 
   def captured
@@ -99,25 +83,25 @@ class Board
   end
 
   def in_check?(color)
-    can_any_piece_move_to? king_pos_of color
+    can_any_piece_move_to? king_of(color).current_pos
   end
 
   def checkmate?(color)
-    return false unless in_check?(color)
-    all? { |piece| piece.color != color || piece.valid_moves.empty? }
+    in_check?(color) && none? do |piece|
+      piece.color == color && !piece.valid_moves.empty?
+    end
   end
 
-  def threats(pos)
-    player = self[pos].color
+  def threats(pos, player = self[pos].color)
     select { |piece| piece.color != player && piece.valid_moves.include?(pos) }
   end
 
   def move_threats(start_pos, end_pos)
     player = self[start_pos].color
     move_piece(start_pos, end_pos)
-    threats = select { |piece| piece.color != player && piece.moves.include?(end_pos) }
+    result = threats(end_pos, player)
     undo_move
-    threats
+    result
   end
 
   def state
@@ -133,25 +117,40 @@ class Board
   end
 
   private
-
   attr_accessor :board
 
   def []=(pos, piece)
     ChessUtil::set_piece_at(@board, pos, piece)
   end
 
-  def make_pieces(factory_array, color, row)
-    factory_array.map.with_index do |class_, idx|
-      make_piece(class_, color, [row, idx])
-    end
-  end
-
-  def king_pos_of(color)
-    return find { |piece| piece.is_a?(King) && piece.color == color }.current_pos
+  def king_of(color)
+    find { |piece| piece.is_a?(King) && piece.color == color }
   end
 
   def can_any_piece_move_to?(pos)
     any? { |piece| ChessUtil::moves_include(piece.moves, pos) }
+  end
+
+  def castling(piece, start_pos, end_pos)
+    piece.is_a?(King) && (end_pos.last - start_pos.last).abs == 2
+  end
+
+  def castle(start_pos, end_pos)
+    row, col = end_pos
+    if (col > start_pos.last)
+      start_pos = [row, 7]
+      end_pos = [row, col - 1]
+    else
+      start_pos = [row, 0]
+      end_pos = [row, col + 1]
+    end
+    move_piece(start_pos, end_pos)
+  end
+
+  def make_pieces(factory_array, color, row)
+    factory_array.map.with_index do |class_, idx|
+      make_piece(class_, color, [row, idx])
+    end
   end
 
   def restore_state(str)
@@ -162,6 +161,7 @@ class Board
 
   def encode
     arr = []
+
     # Pieces
     board.each_with_index do |piece, idx|
       arr << '/' if idx % 8 == 0 && idx != 0
