@@ -181,11 +181,11 @@ static VALUE in_bounds(int argc, VALUE *argv, VALUE self) {
 //  Retrieve a piece on the board
 
 static VALUE get_piece_at(int argc, VALUE *argv, VALUE self) {
-  VALUE board = argv[0];
+  VALUE ary = argv[0];
   VALUE pos = argv[1];
   int row = NUM2INT(rb_ary_entry(pos, 0));
   int col = NUM2INT(rb_ary_entry(pos, 1));
-  return rb_ary_entry(board, row * 8 + col);
+  return rb_ary_entry(ary, row * 8 + col);
 }
 
 //  Generate moves for a stepping (K) or sliding piece (N, R, B, Q)
@@ -233,7 +233,6 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self) {
   int col = NUM2INT(rb_ary_entry(pos, 1));
   char color = get_color_at(board, row, col);
   int step = (color == 'b') ? 1 : -1;
-
 
   //  pawn's step moves
 
@@ -286,6 +285,46 @@ static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self) {
   return moves;
 }
 
+//  Generate King's castle moves
+
+int rook_not_moved(VALUE ary, int row, int col) {
+  VALUE rook = rb_ary_entry(ary, row * 8 + col);
+  return strcmp(rb_obj_classname(rook), "Rook") == 0 &&
+    !RTEST(rb_iv_get(rook, "@moved"));
+}
+
+int not_occupied(VALUE ary, int row, int start_col, int end_col) {
+  for (int i = start_col; i <= end_col; i++) {
+    VALUE piece = rb_ary_entry(ary, row * 8 + i);
+    if (TYPE(rb_iv_get(piece, "@color")) != T_NIL) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static VALUE get_castle_moves(int argc, VALUE *argv, VALUE self) {
+  VALUE moves = rb_ary_new();
+
+  VALUE king = argv[0];
+  if (!RTEST(rb_iv_get(king, "@moved"))) {
+    VALUE ary = rb_iv_get(rb_iv_get(king, "@board"), "@board");
+    VALUE pos = rb_iv_get(king, "@current_pos");
+    int row = NUM2INT(rb_ary_entry(pos, 0));
+    int col = NUM2INT(rb_ary_entry(pos, 1));
+    if (col == 4) {
+      if (rook_not_moved(ary, row, 0) && not_occupied(ary, row, 1, col - 1)) {
+        add_move(moves, row, col - 2);
+      }
+      if (rook_not_moved(ary, row, 7) && not_occupied(ary, row, col + 1, 6)) {
+        add_move(moves, row, col + 2);
+      }
+    }
+  }
+
+  return moves;
+}
+
 //  Calculate the value of a board
 
 static VALUE get_board_value(int argc, VALUE *argv, VALUE self) {
@@ -314,5 +353,6 @@ void Init_chess_util() {
   rb_define_module_function(rbModule, "get_moves", get_moves, -1);
   rb_define_module_function(rbModule, "get_pawn_moves", get_pawn_moves, -1);
   rb_define_module_function(rbModule, "get_knight_moves", get_knight_moves, -1);
+  rb_define_module_function(rbModule, "get_castle_moves", get_castle_moves, -1);
   rb_define_module_function(rbModule, "get_board_value", get_board_value, -1);
 }

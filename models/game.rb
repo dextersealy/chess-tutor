@@ -11,7 +11,6 @@ class Game
       @board = Board.new
       @current_player = :white
     end
-
   end
 
   def move(from, to)

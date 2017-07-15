@@ -55,23 +55,44 @@ class Board
       ChessUtil::in_bounds(end_pos)
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
-    @undo << [start_pos, end_pos, self[end_pos]]
-
     piece = self[start_pos]
+    @undo << [start_pos, end_pos, self[end_pos], piece.moved]
+
     self[end_pos] = piece
     piece.current_pos = end_pos
     self[start_pos] = NullPiece.instance
+
+    if piece.is_a?(King) && (end_pos.last - start_pos.last).abs > 1
+      row, col = end_pos
+      if (col > start_pos.last)
+        start_pos = [row, 7]
+        end_pos = [row, col - 1]
+      else
+        start_pos = [row, 0]
+        end_pos = [row, col + 1]
+      end
+      rook = self[start_pos]
+      @undo << [start_pos, end_pos, nil, false]
+
+      self[end_pos] = rook
+      self[start_pos] = NullPiece.instance
+      rook.current_pos = end_pos
+    end
   end
 
   def undo_move
     return if @undo.empty?
+    start_pos, end_pos, piece, moved_state = @undo.pop
 
-    start_pos, end_pos, piece = @undo.pop
-    self[start_pos] = self[end_pos]
-    self[start_pos].current_pos = start_pos
-    self[end_pos] = piece
-    self[end_pos].current_pos = end_pos
+    undid = self[end_pos]
+    self[start_pos] = undid
+    undid.current_pos = start_pos
+    undid.moved = moved_state
 
+    self[end_pos] = piece || NullPiece.instance
+    piece.current_pos = end_pos if piece
+
+    undo_move unless piece
   end
 
   def captured
