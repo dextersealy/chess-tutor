@@ -3,7 +3,7 @@ require_relative '../c/chess_util'
 
 class Knight < Piece
   def moves
-    ChessUtil::get_knight_moves(current_pos, board)
+    ChessUtil::get_knight_moves(self)
   end
 
   def to_s

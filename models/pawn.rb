@@ -6,6 +6,6 @@ class Pawn < Piece
   end
 
   def moves
-    ChessUtil::get_pawn_moves(current_pos, board)
+    ChessUtil::get_pawn_moves(self)
   end
 end

@@ -165,46 +165,54 @@ int get_piece_value(VALUE piece, int offset, const char *player) {
 
 //  M o d u l e   i n t e r f a c e
 
-//  Test if a position is on the board
+//  Test if a position valid; accepts array with [row, col] coordinates.
+//  Verifies the input is an array of the correct size and the coordinates
+//  are on the board
 
 static VALUE in_bounds(int argc, VALUE *argv, VALUE self) {
   VALUE pos = argv[0];
-  int row = NUM2INT(rb_ary_entry(pos, 0));
-  int col = NUM2INT(rb_ary_entry(pos, 1));
-  if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-    return Qtrue;
-  } else {
-    return Qfalse;
+
+  if (TYPE(pos) == T_ARRAY && RARRAY_LEN(pos) == 2) {
+    int row = NUM2INT(rb_ary_entry(pos, 0));
+    int col = NUM2INT(rb_ary_entry(pos, 1));
+    if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+      return Qtrue;
+    }
   }
+
+  return Qfalse;
 }
 
-//  Retrieve a piece on the board
+//  Retrieve a piece on the board; take Board object and array with
+//  [row, col] coordinates
 
 static VALUE get_piece_at(int argc, VALUE *argv, VALUE self) {
-  VALUE ary = argv[0];
+  VALUE ary = rb_iv_get(argv[0], "@board");
   VALUE pos = argv[1];
   int row = NUM2INT(rb_ary_entry(pos, 0));
   int col = NUM2INT(rb_ary_entry(pos, 1));
   return rb_ary_entry(ary, row * 8 + col);
 }
 
-//  Generate moves for a stepping (K) or sliding piece (N, R, B, Q)
+//  Generate moves for a stepping or sliding piece; takes Piece object,
+//  array of movements (any of :down, :up, :left, :right, :nw, :ne, :sw, :se),
+//  and whether to step or slide (one of :slide, :step)
 
 static VALUE get_moves(int argc, VALUE *argv, VALUE self) {
   VALUE moves = rb_ary_new();
-
-  VALUE pos = argv[0];
-  VALUE ary = argv[1];
+  VALUE piece = argv[0];
+  VALUE movements = argv[1];
   VALUE stepping = strcmp(rb_id2name(SYM2ID(argv[2])), "step") == 0;
-  VALUE board = argv[3];
 
+  VALUE board = rb_iv_get(piece, "@board");
+  VALUE pos = rb_iv_get(piece, "@current_pos");
   int start_row = NUM2INT(rb_ary_entry(pos, 0));
   int start_col = NUM2INT(rb_ary_entry(pos, 1));
 
   if (is_valid_pos(board, start_row, start_col, 0)) {
     char color = get_color_at(board, start_row, start_col);
-    for (int i = 0, n = RARRAY_LEN(ary); i < n; i++) {
-      int *d = get_delta(rb_id2name(SYM2ID(rb_ary_entry(ary, i))));
+    for (int i = 0, n = RARRAY_LEN(movements); i < n; i++) {
+      int *d = get_delta(rb_id2name(SYM2ID(rb_ary_entry(movements, i))));
       if (d != 0) {
         int dy = d[0], dx = d[1];
         for (int row = start_row + dy, col = start_col + dx
@@ -222,13 +230,14 @@ static VALUE get_moves(int argc, VALUE *argv, VALUE self) {
   return moves;
 }
 
-//  Generate the moves for a pawn
+//  Generate the moves for a pawn; takes Pawn object
 
 static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self) {
   VALUE moves = rb_ary_new();
+  VALUE pawn = argv[0];
 
-  VALUE pos = argv[0];
-  VALUE board = argv[1];
+  VALUE board = rb_iv_get(pawn, "@board");
+  VALUE pos = rb_iv_get(pawn, "@current_pos");
   int row = NUM2INT(rb_ary_entry(pos, 0));
   int col = NUM2INT(rb_ary_entry(pos, 1));
   char color = get_color_at(board, row, col);
@@ -260,23 +269,24 @@ static VALUE get_pawn_moves(int argc, VALUE *argv, VALUE self) {
   return moves;
 }
 
-//  Generate moves for a knight
+//  Generate moves for a knight; takes Knight object
+
+static int KNIGHT_MOVES[][2] = {
+  {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}
+};
 
 static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self) {
-  static int MOVES[][2] = {
-    {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}
-  };
-
   VALUE moves = rb_ary_new();
+  VALUE knight = argv[0];
 
-  VALUE pos = argv[0];
-  VALUE board = argv[1];
+  VALUE board = rb_iv_get(knight, "@board");
+  VALUE pos = rb_iv_get(knight, "@current_pos");
   int row = NUM2INT(rb_ary_entry(pos, 0));
   int col = NUM2INT(rb_ary_entry(pos, 1));
   char color = get_color_at(board, row, col);
 
-  for (int i = 0, n = sizeof(MOVES) / sizeof(MOVES[0]); i < n; i++) {
-    int dy = MOVES[i][0], dx = MOVES[i][1];
+  for (int i = 0, n = sizeof(KNIGHT_MOVES) / sizeof(KNIGHT_MOVES[0]); i < n; i++) {
+    int dy = KNIGHT_MOVES[i][0], dx = KNIGHT_MOVES[i][1];
     if (is_valid_pos(board, row + dy, col + dx, color)) {
       add_move(moves, row + dy, col + dx);
     }
@@ -285,7 +295,9 @@ static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self) {
   return moves;
 }
 
-//  Generate King's castle moves
+//  Generate King's castle moves; takes King object and verifies neither the
+//  King nor Rook had been moved. Does not verify King won't move through/into
+//  Check.
 
 int rook_not_moved(VALUE ary, int row, int col) {
   VALUE rook = rb_ary_entry(ary, row * 8 + col);
@@ -305,8 +317,8 @@ int not_occupied(VALUE ary, int row, int start_col, int end_col) {
 
 static VALUE get_castle_moves(int argc, VALUE *argv, VALUE self) {
   VALUE moves = rb_ary_new();
-
   VALUE king = argv[0];
+
   if (!RTEST(rb_iv_get(king, "@moved"))) {
     VALUE ary = rb_iv_get(rb_iv_get(king, "@board"), "@board");
     VALUE pos = rb_iv_get(king, "@current_pos");
@@ -325,11 +337,10 @@ static VALUE get_castle_moves(int argc, VALUE *argv, VALUE self) {
   return moves;
 }
 
-//  Calculate the value of a board
+//  Calculate the value of a board; takes Board object and player color.
 
 static VALUE get_board_value(int argc, VALUE *argv, VALUE self) {
   int value = 0;
-
   VALUE board = rb_iv_get(argv[0], "@board");
   const char *player = rb_id2name(SYM2ID(argv[1]));
 
