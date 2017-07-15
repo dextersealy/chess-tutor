@@ -52,11 +52,11 @@ class ComputerPlayer < Player
     return best_move, best_value
   end
 
-  def each_move(color, &block)
+  def each_move(color)
     moves = valid_moves(color).reject { |_, v| v.empty? }
     moves.each do |start_pos, ends|
-      ends.each do |end_pos|
-        block.call([start_pos, end_pos])
+      for end_pos in ends do
+        yield [start_pos, end_pos]
       end
     end
   end

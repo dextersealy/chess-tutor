@@ -152,7 +152,7 @@ class Board
   end
 
   def can_any_piece_move_to?(pos)
-    any? { |piece| piece.moves.include?(pos) }
+    any? { |piece| ChessUtil::moves_include(piece.moves, pos) }
   end
 
   def restore_state(str)

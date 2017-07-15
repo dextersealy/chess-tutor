@@ -344,6 +344,7 @@ static VALUE get_castle_moves(int argc, VALUE *argv, VALUE self) {
 
 static VALUE get_board_value(int argc, VALUE *argv, VALUE self) {
   int value = 0;
+
   VALUE board_ary = rb_iv_get(argv[0], "@board");
   char player = *rb_id2name(SYM2ID(argv[1]));
 
@@ -353,6 +354,26 @@ static VALUE get_board_value(int argc, VALUE *argv, VALUE self) {
 
   return INT2NUM(value);
 }
+
+//  Test if array of moves inclues a position; takes array of [row, col]
+//  moves and a [row, col] position
+
+static VALUE moves_include(int argc, VALUE *argv, VALUE self) {
+  VALUE moves = argv[0];
+  int row = NUM2INT(rb_ary_entry(argv[1], 0));
+  int col = NUM2INT(rb_ary_entry(argv[1], 1));
+
+  for (int n = RARRAY_LEN(moves); n--;) {
+    VALUE move = rb_ary_entry(moves, n);
+    if (NUM2INT(rb_ary_entry(move, 0)) == row &&
+      NUM2INT(rb_ary_entry(move, 1)) == col) {
+      return Qtrue;
+    }
+  }
+
+  return Qfalse;
+}
+
 
 //  M o d u l e  s e t u p
 
@@ -369,4 +390,5 @@ void Init_chess_util() {
   rb_define_module_function(rbModule, "get_knight_moves", get_knight_moves, -1);
   rb_define_module_function(rbModule, "get_castle_moves", get_castle_moves, -1);
   rb_define_module_function(rbModule, "get_board_value", get_board_value, -1);
+  rb_define_module_function(rbModule, "moves_include", moves_include, -1);
 }
