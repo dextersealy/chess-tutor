@@ -104,7 +104,29 @@ describe "Piece" do
 end
 
   describe "valid_moves" do
+    it "cannot leave king in check" do
+      board = Board.new("RNBQKBNR/PPP1PPPP/3p4/8/q7/8/8/4k3||")
+      expect(board[[0, 2]].valid_moves).to match_array([[1, 3]])
+      expect(board[[0, 3]].valid_moves).to match_array([[1, 3]])
+    end
+
+    it "cannot put king check" do
+      board = Board.new("4K3/5N2/8/7q/8/8/8/4k3||")
+      expect(board[[1, 5]].valid_moves).to eq([])
+      board = Board.new("4K3/5B2/8/7q/8/8/8/4k3||")
+      expect(board[[1, 5]].valid_moves).to eq([[2, 6], [3, 7]])
+      board = Board.new("4K3/5P2/8/7q/8/8/8/4k3||")
+      expect(board[[1, 5]].valid_moves).to eq([])
+    end
+
     context "king" do
+      it "cannot move into check" do
+        board = Board.new("4K3/8/7q/8/8/8/Q7/4k3||")
+        expect(board[[0, 4]].valid_moves).to match_array(
+          single_step_moves(0, 4).reject { |pos| pos == [0, 5] })
+        expect(board[[7, 4]].valid_moves).to match_array(
+          single_step_moves(7, 4).reject { |pos| pos[0] == 6 })
+      end
       it "cannot castle when in check" do
         board = Board.new("R3K2R/8/8/4q3/4Q3/8/8/r3k2r|qkQK|")
         expect(board[[0, 4]].valid_moves).to match_array(
