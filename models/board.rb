@@ -217,13 +217,13 @@ class Board
     arr.map do |pos|
       case pos
       when [0, 0]
-        'q'
-      when [0, 7]
-        'k'
-      when [7, 0]
         'Q'
-      when [7, 7]
+      when [0, 7]
         'K'
+      when [7, 0]
+        'q'
+      when [7, 7]
+        'k'
       end
     end.join
   end
@@ -232,13 +232,13 @@ class Board
     return nil if str.nil? || str.length == 0 || str == '-'
     str.each_char.map do |letter|
       case letter
-      when 'q'
-        [0, 0]
-      when 'k'
-        [0, 7]
       when 'Q'
-        [7, 0]
+        [0, 0]
       when 'K'
+        [0, 7]
+      when 'q'
+        [7, 0]
+      when 'k'
         [7, 7]
       end
     end

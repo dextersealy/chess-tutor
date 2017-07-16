@@ -94,7 +94,7 @@ describe "Piece" do
         expect(board[[6, 4]].moves).to match_array(single_step_moves(6, 4))
       end
       it "can castle kingside and queenside" do
-        board = Board.new("R3K2R/8/8/8/8/8/8/r3k2r|qkQK|")
+        board = Board.new("R3K2R/8/8/8/8/8/8/r3k2r|QKqk|")
         expect(board[[0, 4]].moves).to match_array(
           single_step_moves(0, 4).concat([[0, 2], [0, 6]]))
         expect(board[[7, 4]].moves).to match_array(
@@ -128,14 +128,14 @@ end
           single_step_moves(7, 4).reject { |pos| pos[0] == 6 })
       end
       it "cannot castle when in check" do
-        board = Board.new("R3K2R/8/8/4q3/4Q3/8/8/r3k2r|qkQK|")
+        board = Board.new("R3K2R/8/8/4q3/4Q3/8/8/r3k2r|QKqk|")
         expect(board[[0, 4]].valid_moves).to match_array(
           single_step_moves(0, 4).reject { |pos| pos == [1, 4] })
         expect(board[[7, 4]].valid_moves).to match_array(
           single_step_moves(7, 4).reject { |pos| pos == [6, 4] })
       end
       it "cannot castle through check" do
-        board = Board.new("R3K2R/8/7q/8/Q7/8/8/r3k2r|qkQK|")
+        board = Board.new("R3K2R/8/7q/8/Q7/8/8/r3k2r|QKqk|")
         expect(board[[0, 4]].valid_moves).to match_array(
           single_step_moves(0, 4).concat([[0, 2]]).reject { |pos| pos == [0, 5] })
         expect(board[[7, 4]].valid_moves).to match_array(
