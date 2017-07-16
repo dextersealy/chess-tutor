@@ -1,12 +1,13 @@
 require_relative 'null.rb'
 
 def encode_piece(piece)
-  return ' ' if piece.nil?
+  return nil if piece.nil?
   letter = (piece.class.name == 'Knight') ? 'N' : piece.class.name.first
   (piece.color == :white) ? letter.downcase : letter
 end
 
 def decode_piece(letter, pos)
+  return NullPiece.instance unless letter
   classname = case letter
   when 'p', 'P'
     'Pawn'
@@ -28,11 +29,14 @@ def decode_piece(letter, pos)
 end
 
 def encode_pos(pos)
-  pos ? 'abcdefgh'[pos[0]] + '87654321'[pos[1]] : ''
+  row, col = pos
+  pos ? 'abcdefgh'[col] + '87654321'[row] : ''
 end
 
 def decode_pos(loc)
-  ['abcdefgh'.index(loc[0]), '87654321'.index(loc[1])]
+  col = 'abcdefgh'.index(loc[0])
+  row = '87654321'.index(loc[1])
+  [row, col]
 end
 
 def make_piece(classname, color, pos = nil)

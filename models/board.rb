@@ -10,6 +10,8 @@ require_relative 'errors.rb'
 require_relative 'util.rb'
 require_relative '../c/chess_util'
 
+require 'byebug'
+
 class Board
   include Enumerable
 
@@ -25,6 +27,7 @@ class Board
       @board.concat([NullPiece.instance] * 32)
       @board.concat(make_pieces(['Pawn'] * 8, :white, 6))
       @board.concat(make_pieces(PIECES, :white, 7))
+      @castleable = [[0, 0], [0,7], [7, 0], [7, 7]]
       @undo = []
     end
   end
@@ -57,7 +60,17 @@ class Board
     piece = self[start_pos]
     castle(start_pos, end_pos) if castling(piece, start_pos, end_pos)
 
-    @undo << [start_pos, end_pos, self[end_pos], piece.moved]
+    if piece.is_a?(Rook)
+      castleable = @castleable
+      @castleable = @castleable.reject { |pos| pos == start_pos }
+    elsif piece.is_a?(King)
+      castleable = @castleable
+      @castleable = @castleable.reject { |pos| pos[0] == start_pos[0] }
+    else
+      castleable = nil
+    end
+    @undo << [start_pos, end_pos, self[end_pos], castleable]
+
     self[end_pos] = piece
     piece.current_pos = end_pos
     self[start_pos] = NullPiece.instance
@@ -65,16 +78,16 @@ class Board
 
   def undo_move
     return if @undo.empty?
-    start_pos, end_pos, captured, moved_state = @undo.pop
+    start_pos, end_pos, captured, castleable = @undo.pop
 
     piece = self[end_pos]
     self[start_pos] = piece
     piece.current_pos = start_pos
-    piece.moved = moved_state
 
     self[end_pos] = captured
     captured.current_pos = end_pos
 
+    @castleable = castleable if castleable
     undo_move if castling(piece, start_pos, end_pos)
   end
 
@@ -105,7 +118,9 @@ class Board
   end
 
   def state
-    encode
+    "#{encode_pieces(@board)}" \
+    "|#{encode_castleable(@castleable)}" \
+    "|#{@undo.map { |undo| encode_undo(*undo) }.join(',')}"
   end
 
   def to_s
@@ -154,16 +169,17 @@ class Board
   end
 
   def restore_state(str)
-    return false unless str
-    decode(str)
+    return false unless str && str.length > 0
+    pieces, castleable, undo = str.split('|', -1)
+    @board = decode_pieces(pieces)
+    @castleable = decode_castleable(castleable)
+    @undo = undo.split(',').map { |str| decode_undo(str) }
     true
   end
 
-  def encode
+  def encode_pieces(pieces)
     arr = []
-
-    # Pieces
-    board.each_with_index do |piece, idx|
+    pieces.each_with_index do |piece, idx|
       arr << '/' if idx % 8 == 0 && idx != 0
       if piece.nil?
         (arr.last.is_a? Numeric) ? arr[arr.size-1] += 1 : arr << 1
@@ -171,38 +187,78 @@ class Board
         arr << encode_piece(piece)
       end
     end
-
-    # Undo
-    arr << '|'
-    @undo.each do |from, to, piece|
-      arr << "#{encode_pos(from)}#{encode_pos(to)}#{encode_piece(piece)}"
-    end
-
     arr.join
   end
 
-  def decode(str)
-    pieces, undo = str.split('|')
-
+  def decode_pieces(str)
     idx = 0;
-    @board = [NullPiece.instance] * 64;
-    pieces.each_char do |ch|
+    arr = [NullPiece.instance] * 64;
+    str.each_char do |ch|
       next if ch == '/'
       if "12345678".include?(ch)
         idx += ch.to_i
       else
-        @board[idx] = decode_piece(ch, [idx / 8, idx % 8])
+        arr[idx] = decode_piece(ch, [idx / 8, idx % 8])
         idx += 1
       end
     end
+    arr
+  end
 
-    @undo = []
-    return unless undo
-    (0...undo.length).step(5) do |i|
-      start_pos = decode_pos(undo.slice(i, 2))
-      end_pos = decode_pos(undo.slice(i + 2, 2))
-      piece = decode_piece(undo[i+4], end_pos)
-      @undo << [start_pos, end_pos, piece]
+  def encode_undo(from, to, piece, castleable)
+    piece_code = encode_piece(piece)
+    castleable_code = encode_castleable(castleable)
+    piece_code = ' ' unless piece_code || castleable_code.nil?
+    "#{encode_pos(from)}#{encode_pos(to)}#{piece_code}#{castleable_code}"
+  end
+
+  def decode_undo(str)
+    from = decode_pos(str[0..1])
+    to = decode_pos(str[2..3])
+    piece = decode_piece(str[4], to)
+    castleable = decode_castleable(str[5..-1])
+    [from, to, piece, castleable]
+  end
+
+  def encode_castleable(arr)
+    if arr.nil?
+      nil
+    elsif arr.empty?
+      '-'
+    else
+      arr.map do |pos|
+        case pos
+        when [0, 0]
+          'q'
+        when [0, 7]
+          'k'
+        when [7, 0]
+          'Q'
+        when [7, 7]
+          'K'
+        end
+      end.join
+    end
+  end
+
+  def decode_castleable(str)
+    if str.nil? || str.length == 0
+      nil
+    elsif str == '-'
+      []
+    else
+      str.each_char.map do |letter|
+        case letter
+        when 'q'
+          [0, 0]
+        when 'k'
+          [0, 7]
+        when 'Q'
+          [7, 0]
+        when 'K'
+          [7, 7]
+        end
+      end
     end
   end
 

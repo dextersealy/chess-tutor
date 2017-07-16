@@ -2,16 +2,22 @@ require_relative 'piece.rb'
 require_relative 'stepping_piece.rb'
 require_relative '../c/chess_util'
 
+require 'byebug'
+
 class King < Piece
-  include SteppingPiece
 
   def moves
-    castle_moves = ChessUtil::get_castle_moves(self);
-    super.concat(castle_moves)
+    ChessUtil::get_king_moves(self);
   end
 
-  def movements
-    [:nw, :ne, :sw, :se, :up, :down, :left, :right]
+  def valid_moves
+    result = super
+    result.reject! do |pos|
+      row, col, end_col = *current_pos, pos[1]
+      (end_col - col).abs == 2 && (board.in_check?(color) ||
+        !moves.include?([row, (col + end_col) / 2]))
+    end
+    result
   end
 
   def to_s

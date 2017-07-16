@@ -160,14 +160,6 @@ int get_piece_value(VALUE piece, int offset, char player) {
   return value;
 }
 
-//  Test whether the board position contains a Rook that had never moved
-
-static int rook_and_not_moved(VALUE ary, int row, int col) {
-  VALUE rook = rb_ary_entry(ary, row * 8 + col);
-  return strcmp(rb_obj_classname(rook), "Rook") == 0 &&
-    !RTEST(rb_iv_get(rook, "@moved"));
-}
-
 //  Test whether a series of board postions is unoccupied
 
 static int not_occupied(VALUE ary, int row, int start_col, int end_col) {
@@ -178,6 +170,18 @@ static int not_occupied(VALUE ary, int row, int start_col, int end_col) {
     }
   }
   return 1;
+}
+
+int search(VALUE arr, int row, int col) {
+  int n = RARRAY_LEN(arr);
+  while (n--) {
+    VALUE pos = rb_ary_entry(arr, n);
+    if (NUM2INT(rb_ary_entry(pos, 0)) == row &&
+      NUM2INT(rb_ary_entry(pos, 1)) == col) {
+      break;
+    }
+  }
+  return n;
 }
 
 //  M o d u l e   i n t e r f a c e
@@ -320,29 +324,36 @@ static VALUE get_knight_moves(int argc, VALUE *argv, VALUE self) {
   return moves;
 }
 
-//  Generate King's castle moves; takes King object and verifies neither the
-//  King nor Rook had been moved. Does not verify King won't move through/into
-//  Check.
+//  Generate King's moves; takes King object
 
-static VALUE get_castle_moves(int argc, VALUE *argv, VALUE self) {
+static VALUE get_king_moves(int argc, VALUE *argv, VALUE self) {
   VALUE moves = rb_ary_new();
   VALUE king = argv[0];
 
-  if (!RTEST(rb_iv_get(king, "@moved"))) {
-    VALUE board_ary = get_board_ary(king);
-    VALUE pos = rb_iv_get(king, "@current_pos");
-    int row = NUM2INT(rb_ary_entry(pos, 0));
-    int col = NUM2INT(rb_ary_entry(pos, 1));
-    if (col == 4) { // bug spray
-      if (rook_and_not_moved(board_ary, row, 0) &&
-        not_occupied(board_ary, row, 1, col - 1)) {
-        add_move(moves, row, col - 2);
-      }
-      if (rook_and_not_moved(board_ary, row, 7) &&
-        not_occupied(board_ary, row, col + 1, 6)) {
-        add_move(moves, row, col + 2);
+  VALUE board = rb_iv_get(king, "@board");
+  VALUE board_ary = rb_iv_get(board, "@board");
+  VALUE castleable =  rb_iv_get(board, "@castleable");
+  VALUE pos = rb_iv_get(king, "@current_pos");
+  int row = NUM2INT(rb_ary_entry(pos, 0));
+  int col = NUM2INT(rb_ary_entry(pos, 1));
+  char color = get_color_at(board_ary, row, col);
+
+  for (int dy = -1; dy <= 1; dy++) {
+    for (int dx = -1; dx <= 1; dx ++) {
+      if ((dx || dy) && is_valid_pos(board_ary, row + dy, col + dx, color)) {
+        add_move(moves, row + dy, col + dx);
       }
     }
+  }
+
+  if (search(castleable, row, 0) >= 0
+    && not_occupied(board_ary, row, 1, col - 1)) {
+    add_move(moves, row, col - 2);
+  }
+
+  if (search(castleable, row, 7) >= 0
+    && not_occupied(board_ary, row, col + 1, 6)) {
+    add_move(moves, row, col + 2);
   }
 
   return moves;
@@ -370,18 +381,8 @@ static VALUE moves_include(int argc, VALUE *argv, VALUE self) {
   VALUE moves = argv[0];
   int row = NUM2INT(rb_ary_entry(argv[1], 0));
   int col = NUM2INT(rb_ary_entry(argv[1], 1));
-
-  for (int n = RARRAY_LEN(moves); n--;) {
-    VALUE move = rb_ary_entry(moves, n);
-    if (NUM2INT(rb_ary_entry(move, 0)) == row &&
-      NUM2INT(rb_ary_entry(move, 1)) == col) {
-      return Qtrue;
-    }
-  }
-
-  return Qfalse;
+  return search(moves, row, col) < 0 ? Qfalse : Qtrue;
 }
-
 
 //  M o d u l e  s e t u p
 
@@ -397,7 +398,7 @@ void Init_chess_util() {
   rb_define_module_function(rbModule, "get_moves", get_moves, -1);
   rb_define_module_function(rbModule, "get_pawn_moves", get_pawn_moves, -1);
   rb_define_module_function(rbModule, "get_knight_moves", get_knight_moves, -1);
-  rb_define_module_function(rbModule, "get_castle_moves", get_castle_moves, -1);
+  rb_define_module_function(rbModule, "get_king_moves", get_king_moves, -1);
   rb_define_module_function(rbModule, "get_board_value", get_board_value, -1);
   rb_define_module_function(rbModule, "moves_include", moves_include, -1);
 }

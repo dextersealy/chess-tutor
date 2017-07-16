@@ -3,17 +3,18 @@ require 'htmlentities'
 require_relative '../c/chess_util'
 
 class Piece
-  attr_accessor :color, :current_pos, :board, :moved
+  attr_accessor :color, :current_pos, :board
 
   def initialize(board, color = :white)
     @board = board
     @color = color
     @current_pos = nil
-    @moved = false;
   end
 
   def valid_moves
-    moves.select { |pos| board.valid_move?(current_pos, pos) }
+    result = moves
+    result.select! { |pos| board.valid_move?(current_pos, pos) }
+    result
   end
 
   def nil?

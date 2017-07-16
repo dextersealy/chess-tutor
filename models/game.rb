@@ -46,5 +46,5 @@ class Game
 
   private
 
-  VERSION = 4
+  VERSION = 6
 end
