@@ -7,15 +7,15 @@ class NullPiece < Piece
     super(nil, nil)
   end
 
-  def movements
+  def moves
     []
-  end
-
-  def to_s
-    " "
   end
 
   def nil?
     true
+  end
+
+  def to_s
+    " "
   end
 end
