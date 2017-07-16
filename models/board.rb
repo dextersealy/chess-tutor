@@ -44,14 +44,6 @@ class Board
     !self[pos].is_a?(NullPiece)
   end
 
-  def valid_move?(start_pos, end_pos)
-    color = self[start_pos].color
-    move_piece(start_pos, end_pos)
-    result = !in_check?(color)
-    undo_move
-    result
-  end
-
   def move_piece(start_pos, end_pos)
     raise InvalidPosition.new unless ChessUtil::in_bounds(start_pos) &&
       ChessUtil::in_bounds(end_pos)
@@ -119,7 +111,7 @@ class Board
 
   def state
     "#{encode_pieces(@board)}" \
-    "|#{encode_castleable(@castleable)}" \
+    "|#{encode_castleable(@castleable) || '-'}" \
     "|#{@undo.map { |undo| encode_undo(*undo) }.join(',')}"
   end
 
@@ -172,7 +164,7 @@ class Board
     return false unless str && str.length > 0
     pieces, castleable, undo = str.split('|', -1)
     @board = decode_pieces(pieces)
-    @castleable = decode_castleable(castleable)
+    @castleable = decode_castleable(castleable) || []
     @undo = undo.split(',').map { |str| decode_undo(str) }
     true
   end
@@ -221,43 +213,33 @@ class Board
   end
 
   def encode_castleable(arr)
-    if arr.nil?
-      nil
-    elsif arr.empty?
-      '-'
-    else
-      arr.map do |pos|
-        case pos
-        when [0, 0]
-          'q'
-        when [0, 7]
-          'k'
-        when [7, 0]
-          'Q'
-        when [7, 7]
-          'K'
-        end
-      end.join
-    end
+    return nil if arr.nil? || arr.empty?
+    arr.map do |pos|
+      case pos
+      when [0, 0]
+        'q'
+      when [0, 7]
+        'k'
+      when [7, 0]
+        'Q'
+      when [7, 7]
+        'K'
+      end
+    end.join
   end
 
   def decode_castleable(str)
-    if str.nil? || str.length == 0
-      nil
-    elsif str == '-'
-      []
-    else
-      str.each_char.map do |letter|
-        case letter
-        when 'q'
-          [0, 0]
-        when 'k'
-          [0, 7]
-        when 'Q'
-          [7, 0]
-        when 'K'
-          [7, 7]
-        end
+    return nil if str.nil? || str.length == 0 || str == '-'
+    str.each_char.map do |letter|
+      case letter
+      when 'q'
+        [0, 0]
+      when 'k'
+        [0, 7]
+      when 'Q'
+        [7, 0]
+      when 'K'
+        [7, 7]
       end
     end
   end

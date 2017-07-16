@@ -15,7 +15,7 @@ class King < Piece
     result.reject! do |pos|
       row, col, end_col = *current_pos, pos[1]
       (end_col - col).abs == 2 && (board.in_check?(color) ||
-        !moves.include?([row, (col + end_col) / 2]))
+        !result.include?([row, (col + end_col) / 2]))
     end
     result
   end

@@ -173,7 +173,7 @@ static int not_occupied(VALUE ary, int row, int start_col, int end_col) {
 }
 
 int search(VALUE arr, int row, int col) {
-  int n = RARRAY_LEN(arr);
+  int n = TYPE(arr) == T_NIL ? 0 : RARRAY_LEN(arr);
   while (n--) {
     VALUE pos = rb_ary_entry(arr, n);
     if (NUM2INT(rb_ary_entry(pos, 0)) == row &&
@@ -210,7 +210,11 @@ static VALUE in_bounds(int argc, VALUE *argv, VALUE self) {
 static VALUE get_piece_at(int argc, VALUE *argv, VALUE self) {
   int row = NUM2INT(rb_ary_entry(argv[1], 0));
   int col = NUM2INT(rb_ary_entry(argv[1], 1));
-  return rb_ary_entry(argv[0], row * 8 + col);
+  if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+    return rb_ary_entry(argv[0], row * 8 + col);
+  } else {
+    return Qnil;
+  }
 }
 
 //  Set a piece on the board; takes array of pieces, array with

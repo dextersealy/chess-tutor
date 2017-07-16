@@ -2,7 +2,7 @@ require_relative 'null.rb'
 
 def encode_piece(piece)
   return nil if piece.nil?
-  letter = (piece.class.name == 'Knight') ? 'N' : piece.class.name.first
+  letter = (piece.class.name == 'Knight') ? 'N' : piece.class.name[0]
   (piece.color == :white) ? letter.downcase : letter
 end
 

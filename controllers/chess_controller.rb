@@ -1,3 +1,4 @@
+require 'htmlentities'
 require_relative '../lib/controller_base'
 require_relative '../models/game'
 require_relative '../models/player'
@@ -93,5 +94,11 @@ class ChessController < ControllerBase
       result[encode_pos(key)] = value.map { |pos| encode_pos(pos) }
     end
     result
+  end
+end
+
+class Piece
+  def to_html
+    HTMLEntities.new.encode(self.to_s, :decimal)
   end
 end

@@ -1,7 +1,3 @@
-require 'singleton'
-require 'htmlentities'
-require_relative '../c/chess_util'
-
 class Piece
   attr_accessor :color, :current_pos, :board
 
@@ -13,7 +9,7 @@ class Piece
 
   def valid_moves
     result = moves
-    result.select! { |pos| board.valid_move?(current_pos, pos) }
+    result.select! { |pos| valid_move?(pos) }
     result
   end
 
@@ -21,11 +17,16 @@ class Piece
     false
   end
 
-  def to_html
-    HTMLEntities.new.encode(self.to_s, :decimal)
-  end
-
   def inspect
     "#{self.to_s}"
+  end
+
+  protected
+
+  def valid_move?(end_pos)
+    board.move_piece(current_pos, end_pos)
+    result = !board.in_check?(color)
+    board.undo_move
+    result
   end
 end
