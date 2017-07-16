@@ -40,6 +40,20 @@ void add_move(VALUE moves, int row, int col) {
   rb_ary_push(moves, pos);
 }
 
+//  Search for position in Ruby array
+
+int find_move(VALUE moves, int row, int col) {
+  int n = TYPE(moves) == T_NIL ? 0 : RARRAY_LEN(moves);
+  while (n--) {
+    VALUE pos = rb_ary_entry(moves, n);
+    if (NUM2INT(rb_ary_entry(pos, 0)) == row &&
+      NUM2INT(rb_ary_entry(pos, 1)) == col) {
+      break;
+    }
+  }
+  return n;
+}
+
 //  Get dx, dy vector for a direction
 
 static int *get_delta(const char *dir_name) {
@@ -170,18 +184,6 @@ static int not_occupied(VALUE ary, int row, int start_col, int end_col) {
     }
   }
   return 1;
-}
-
-int search(VALUE arr, int row, int col) {
-  int n = TYPE(arr) == T_NIL ? 0 : RARRAY_LEN(arr);
-  while (n--) {
-    VALUE pos = rb_ary_entry(arr, n);
-    if (NUM2INT(rb_ary_entry(pos, 0)) == row &&
-      NUM2INT(rb_ary_entry(pos, 1)) == col) {
-      break;
-    }
-  }
-  return n;
 }
 
 //  M o d u l e   i n t e r f a c e
@@ -350,12 +352,12 @@ static VALUE get_king_moves(int argc, VALUE *argv, VALUE self) {
     }
   }
 
-  if (search(castleable, row, 0) >= 0
+  if (find_move(castleable, row, 0) >= 0
     && not_occupied(board_ary, row, 1, col - 1)) {
     add_move(moves, row, col - 2);
   }
 
-  if (search(castleable, row, 7) >= 0
+  if (find_move(castleable, row, 7) >= 0
     && not_occupied(board_ary, row, col + 1, 6)) {
     add_move(moves, row, col + 2);
   }
@@ -385,7 +387,7 @@ static VALUE moves_include(int argc, VALUE *argv, VALUE self) {
   VALUE moves = argv[0];
   int row = NUM2INT(rb_ary_entry(argv[1], 0));
   int col = NUM2INT(rb_ary_entry(argv[1], 1));
-  return search(moves, row, col) < 0 ? Qfalse : Qtrue;
+  return find_move(moves, row, col) < 0 ? Qfalse : Qtrue;
 }
 
 //  M o d u l e  s e t u p

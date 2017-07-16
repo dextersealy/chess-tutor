@@ -1,7 +1,6 @@
 require_relative '../c/chess_util'
 
 class Player
-
   def initialize(game, color = nil)
     @game = game
     @color = color || game.current_player

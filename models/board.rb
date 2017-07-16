@@ -60,7 +60,6 @@ class Board
     elsif moving.is_a?(King)
       @castleable.reject! { |pos| pos[0] == start_pos[0] }
     end
-
   end
 
   def undo_move
