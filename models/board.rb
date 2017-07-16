@@ -1,23 +1,19 @@
+require_relative 'bishop.rb'
+require_relative 'errors.rb'
+require_relative 'king.rb'
+require_relative 'knight.rb'
+require_relative 'null.rb'
+require_relative 'pawn.rb'
 require_relative 'piece.rb'
 require_relative 'rook.rb'
-require_relative 'knight.rb'
-require_relative 'king.rb'
 require_relative 'queen.rb'
-require_relative 'pawn.rb'
-require_relative 'bishop.rb'
-require_relative 'null.rb'
-require_relative 'errors.rb'
+require_relative 'undo.rb'
 require_relative 'util.rb'
 require_relative '../c/chess_util'
 
-require 'byebug'
-
 class Board
   include Enumerable
-
-  PIECES = [
-    'Rook', 'Knight', 'Bishop', 'Queen', 'King', 'Bishop', 'Knight','Rook'
-  ]
+  attr_accessor :castleable
 
   def initialize(prev_state = nil)
     if !restore_state(prev_state)
@@ -28,7 +24,7 @@ class Board
       @board.concat(make_pieces(['Pawn'] * 8, :white, 6))
       @board.concat(make_pieces(PIECES, :white, 7))
       @castleable = [[0, 0], [0,7], [7, 0], [7, 7]]
-      @undo = []
+      @undo = Undo.new(self)
     end
   end
 
@@ -45,46 +41,49 @@ class Board
   end
 
   def move_piece(start_pos, end_pos)
-    raise InvalidPosition.new unless ChessUtil::in_bounds(start_pos) &&
-      ChessUtil::in_bounds(end_pos)
+    unless ChessUtil::in_bounds(start_pos) && ChessUtil::in_bounds(end_pos)
+      raise InvalidPosition.new
+    end
     raise NoPiece.new if self[start_pos].is_a?(NullPiece)
 
-    piece = self[start_pos]
-    castle(start_pos, end_pos) if castling(piece, start_pos, end_pos)
+    moving = self[start_pos]
+    castle(start_pos, end_pos) if castling(moving, start_pos, end_pos)
 
-    if piece.is_a?(Rook)
-      castleable = @castleable
-      @castleable = @castleable.reject { |pos| pos == start_pos }
-    elsif piece.is_a?(King)
-      castleable = @castleable
-      @castleable = @castleable.reject { |pos| pos[0] == start_pos[0] }
-    else
-      castleable = nil
-    end
-    @undo << [start_pos, end_pos, self[end_pos], castleable]
+    @undo.push(start_pos, end_pos)
 
-    self[end_pos] = piece
-    piece.current_pos = end_pos
+    self[end_pos] = moving
+    moving.current_pos = end_pos
     self[start_pos] = NullPiece.instance
+
+    if moving.is_a?(Rook)
+      @castleable.reject! { |pos| pos == start_pos }
+    elsif moving.is_a?(King)
+      @castleable.reject! { |pos| pos[0] == start_pos[0] }
+    end
+
   end
 
   def undo_move
     return if @undo.empty?
     start_pos, end_pos, captured, castleable = @undo.pop
 
-    piece = self[end_pos]
-    self[start_pos] = piece
-    piece.current_pos = start_pos
+    moved = self[end_pos]
+    self[start_pos] = moved
+    moved.current_pos = start_pos
 
-    self[end_pos] = captured
-    captured.current_pos = end_pos
+    if captured
+      self[end_pos] = captured
+      captured.current_pos = end_pos
+    else
+      self[end_pos] = NullPiece.instance
+    end
 
     @castleable = castleable if castleable
-    undo_move if castling(piece, start_pos, end_pos)
+    undo_move if castling(moved, start_pos, end_pos)
   end
 
   def captured
-    @undo.map { |_, _, piece|  piece }.reject { |piece| piece.nil? }
+    @undo.captured
   end
 
   def in_check?(color)
@@ -100,7 +99,7 @@ class Board
   def state
     "#{encode_pieces(@board)}" \
     "|#{encode_castleable(@castleable) || '-'}" \
-    "|#{@undo.map { |undo| encode_undo(*undo) }.join(',')}"
+    "|#{@undo.save}"
   end
 
   def to_s
@@ -113,6 +112,10 @@ class Board
 
   private
   attr_accessor :board
+
+  PIECES = [
+    'Rook', 'Knight', 'Bishop', 'Queen', 'King', 'Bishop', 'Knight','Rook'
+  ]
 
   def []=(pos, piece)
     ChessUtil::set_piece_at(@board, pos, piece)
@@ -153,83 +156,7 @@ class Board
     pieces, castleable, undo = str.split('|', -1)
     @board = decode_pieces(pieces)
     @castleable = decode_castleable(castleable) || []
-    @undo = undo.split(',').map { |str| decode_undo(str) }
+    @undo = Undo.new(self, undo)
     true
   end
-
-  def encode_pieces(pieces)
-    arr = []
-    pieces.each_with_index do |piece, idx|
-      arr << '/' if idx % 8 == 0 && idx != 0
-      if piece.nil?
-        (arr.last.is_a? Numeric) ? arr[arr.size-1] += 1 : arr << 1
-      else
-        arr << encode_piece(piece)
-      end
-    end
-    arr.join
-  end
-
-  def decode_pieces(str)
-    idx = 0;
-    arr = [NullPiece.instance] * 64;
-    str.each_char do |ch|
-      next if ch == '/'
-      if "12345678".include?(ch)
-        idx += ch.to_i
-      else
-        arr[idx] = decode_piece(ch, [idx / 8, idx % 8])
-        idx += 1
-      end
-    end
-    arr
-  end
-
-  def encode_undo(from, to, piece, castleable)
-    piece_code = encode_piece(piece)
-    castleable_code = encode_castleable(castleable)
-    piece_code = ' ' unless piece_code || castleable_code.nil?
-    "#{encode_pos(from)}#{encode_pos(to)}#{piece_code}#{castleable_code}"
-  end
-
-  def decode_undo(str)
-    from = decode_pos(str[0..1])
-    to = decode_pos(str[2..3])
-    piece = decode_piece(str[4], to)
-    castleable = decode_castleable(str[5..-1])
-    [from, to, piece, castleable]
-  end
-
-  def encode_castleable(arr)
-    return nil if arr.nil? || arr.empty?
-    arr.map do |pos|
-      case pos
-      when [0, 0]
-        'Q'
-      when [0, 7]
-        'K'
-      when [7, 0]
-        'q'
-      when [7, 7]
-        'k'
-      end
-    end.join
-  end
-
-  def decode_castleable(str)
-    return nil if str.nil? || str.length == 0 || str == '-'
-    str.each_char.map do |letter|
-      case letter
-      when 'Q'
-        [0, 0]
-      when 'K'
-        [0, 7]
-      when 'q'
-        [7, 0]
-      when 'k'
-        [7, 7]
-      end
-    end
-  end
-
 end
