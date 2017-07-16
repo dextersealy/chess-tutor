@@ -97,18 +97,6 @@ class Board
     end
   end
 
-  def threats(pos, player = self[pos].color)
-    select { |piece| piece.color != player && piece.valid_moves.include?(pos) }
-  end
-
-  def move_threats(start_pos, end_pos)
-    player = self[start_pos].color
-    move_piece(start_pos, end_pos)
-    result = threats(end_pos, player)
-    undo_move
-    result
-  end
-
   def state
     "#{encode_pieces(@board)}" \
     "|#{encode_castleable(@castleable) || '-'}" \

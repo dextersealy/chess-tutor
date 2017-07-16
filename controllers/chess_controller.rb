@@ -69,17 +69,17 @@ class ChessController < ControllerBase
 
   def get_moves
     player = Player.new(game)
-    player_moves = player.valid_moves
-    threats = move_threats(player_moves).merge(player.threats)
-    { player: encode_moves(player_moves), threats: encode_moves(threats) }
+    moves = player.valid_moves
+    threats = move_threats(player, moves).merge(player.threats)
+    { player: encode_moves(moves), threats: encode_moves(threats) }
   end
 
-  def move_threats(player_moves)
+  def move_threats(player, player_moves)
     result = Hash.new([])
 
     player_moves.each do |start_pos, moves|
       moves.each do |end_pos|
-        board.move_threats(start_pos, end_pos).each do |piece|
+        player.move_threats(start_pos, end_pos).each do |piece|
           result[end_pos] += [piece.current_pos]
         end
       end
