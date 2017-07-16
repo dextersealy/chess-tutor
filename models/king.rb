@@ -1,8 +1,5 @@
 require_relative 'piece.rb'
-require_relative 'stepping_piece.rb'
 require_relative '../c/chess_util'
-
-require 'byebug'
 
 class King < Piece
 
