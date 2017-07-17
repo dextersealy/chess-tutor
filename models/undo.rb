@@ -8,7 +8,7 @@ class Undo
 
   def push(piece, from, to, castleable)
     captured = @board[to]
-    if piece.is_a?(Pawn) && (to.first % 7) == 0
+    if (to.first % 7) == 0 && piece.is_a?(Pawn)
       @moves << [from, to, captured, nil, piece]
     elsif piece.is_a?(Rook) || piece.is_a?(King)
       @moves << [from, to, captured, castleable.dup]
