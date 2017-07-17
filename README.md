@@ -18,13 +18,13 @@ You play White and the computer plays Black. When it's your turn, Chess Tutor di
 
 <table>
 <tr>
-<td><img src="doc/images/moveable-piece.png" width="60px" height="60px"></td>
+<td><img src="doc/images/moveable-piece.png" width="60" height="60"></td>
 <td>It draws a thick border around pieces you can move.</td>
-<td><img src="doc/images/threatened-moveable-piece.png" width="60px" height="60px"></td>
+<td><img src="doc/images/threatened-moveable-piece.png" width="60" height="60"></td>
 <td> When one of your moveable pieces is threatened (i.e., it can be captured by the computer's next move) it adds a gradient background.</td>
 </tr>
 <tr>
-<td><img src="doc/images/threatened-piece.png" width="60px" height="60px"></td>
+<td><img src="doc/images/threatened-piece.png" width="60" height="60"></td>
 <td>When one of your threatened pieces can't move it draws it with a solid background.</td>
 </tr>
 </table>
@@ -32,16 +32,16 @@ You play White and the computer plays Black. When it's your turn, Chess Tutor di
 When you mouse over a piece, Chess Tutor highlights valid moves:
 <table>
 <tr>
-<td><img src="doc/images/unsafe-move.png" width="60px" height="60px"></td>
+<td><img src="doc/images/unsafe-move.png" width="60" height="60"></td>
 <td>Pink means the move is not safe; the square is threatened by a Black piece.</td>
-<td><img src="doc/images/safe-move.png" width="60px" height="60px"></td>
+<td><img src="doc/images/safe-move.png" width="60" height="60"></td>
 <td>Green means the move is safe; the square is not threatened my any Black pieces.</td>
 </tr>
 </table>
 <table>
 <tr>
 </tr><tr>
-<td><img src="doc/images/flashing.gif" width="60px" height="60px"></td>
+<td><img src="doc/images/flashing.gif" width="60" height="60"></td>
 <td>And when you mouse over a threatened piece or move, it flashes the Black pieces that pose a threat.</td>
 </tr>
 </table>
