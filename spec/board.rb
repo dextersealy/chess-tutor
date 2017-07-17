@@ -1,3 +1,4 @@
+require 'byebug'
 require_relative '../models/board.rb'
 
 describe 'Board' do
@@ -10,7 +11,7 @@ describe 'Board' do
     end
   end
 
-  def get(loc)
+  def get(board, loc)
     piece = board[decode_pos(loc.to_s)]
     return nil if piece.nil?
     piece.to_s
@@ -86,10 +87,10 @@ describe 'Board' do
     end
 
     it "updates the board" do
-      expect(get(:b1)).to eq("♘")
+      expect(get(board, :b1)).to eq("♘")
       move(board, :b1, :c3)
-      expect(get(:b1)).to eq(nil)
-      expect(get(:c3)).to eq("♘")
+      expect(get(board, :b1)).to eq(nil)
+      expect(get(board, :c3)).to eq("♘")
     end
 
     it "updates the piece" do
@@ -141,6 +142,15 @@ describe 'Board' do
         expect(board[decode_pos("e1")].valid_moves).not_to include(decode_pos("g1"))
       end
     end
+
+    context "promotion" do
+      it "promotes pawn to queen" do
+        board = Board.new("4K3/1p6/8/8/8/8/6P1/4k3||")
+        move(board, :b7, :b8, :g2, :g1)
+        expect(get(board, :b8)).to eq("♕")
+        expect(get(board, :g1)).to eq("♛")
+      end
+    end
   end
 
   describe "undo_move" do
@@ -171,11 +181,25 @@ describe 'Board' do
     end
 
     it "reverses castling" do
-      board = Board.new("R3K2R/8/8/8/8/8/8/r3k2r|QKqk|")
+      initial_state = "R3K2R/8/8/8/8/8/8/r3k2r|QKqk|"
+      board = Board.new(initial_state)
       move(board, :e1, :g1)
       expect(chomp_undo(board.state)).to eq("R3K2R/8/8/8/8/8/8/r4rk1|QK")
       board.undo_move
-      expect(board.state).to eq("R3K2R/8/8/8/8/8/8/r3k2r|QKqk|")
+      expect(board.state).to eq(initial_state)
+    end
+
+    it "reverses pawn promotion" do
+      initial_state = "4K3/1p6/8/8/8/8/6P1/4k3||"
+      board = Board.new(initial_state)
+      move(board, :b7, :b8, :g2, :g1)
+      expect(get(board, :b8)).to eq("♕")
+      expect(get(board, :g1)).to eq("♛")
+      board.undo_move
+      expect(get(board, :g2)).to eq("♟")
+      board.undo_move
+      expect(get(board, :b7)).to eq("♙")
+      expect(board.state).to eq(initial_state)
     end
   end
 

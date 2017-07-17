@@ -6,10 +6,12 @@ class Undo
     @moves = restore(prev_state) || []
   end
 
-  def push(from, to)
-    moving, captured = @board[from], @board[to]
-    if moving.is_a?(Rook) || moving.is_a?(King)
-      @moves << [from, to, captured, @board.castleable.dup]
+  def push(piece, from, to, castleable)
+    captured = @board[to]
+    if piece.is_a?(Pawn) && (to.first % 7) == 0
+      @moves << [from, to, captured, nil, piece]
+    elsif piece.is_a?(Rook) || piece.is_a?(King)
+      @moves << [from, to, captured, castleable.dup]
     elsif captured.nil?
       @moves << [from, to]
     else
@@ -19,10 +21,6 @@ class Undo
 
   def pop
     @moves.pop
-  end
-
-  def empty?
-    @moves.empty?
   end
 
   def captured
@@ -40,24 +38,35 @@ class Undo
     str.split(',').map { |move| decode(move) }
   end
 
-  def encode(from, to, piece = nil, castleable = nil)
-    piece_code = encode_piece(piece)
-    castleable_code = encode_castleable(castleable)
-    piece_code = ' ' unless piece_code || castleable_code.nil?
-    "#{encode_pos(from)}#{encode_pos(to)}#{piece_code}#{castleable_code}"
+  def encode(from, to, piece = nil, castleable = nil, promoted = nil)
+    promoted = encode_piece(promoted)
+    castleable = encode_castleable(castleable)
+    piece = encode_piece(piece)
+    castleable ||= '-' if promoted
+    piece ||= ' ' if castleable
+    "#{encode_pos(from)}#{encode_pos(to)}#{piece}#{castleable}#{promoted}"
   end
 
   def decode(str)
     from = decode_pos(str[0..1])
     to = decode_pos(str[2..3])
     piece = decode_piece(str[4], to)
-    castleable = decode_castleable(str[5..-1])
-    if castleable.nil? && piece.nil?
-      [from, to]
-    elsif castleable.nil?
+    if str[5] == '-'
+      promoted = decode_piece(str[6])
+      castleable = nil
+    else
+      promoted = nil
+      castleable = decode_castleable(str[5..-1])
+    end
+
+    if promoted
+      [from, to, piece, castleable, promoted]
+    elsif castleable
+      [from, to, piece, castleable]
+    elsif piece
       [from, to, piece]
     else
-      [from, to, piece, castleable]
+      [from, to]
     end
   end
 end
