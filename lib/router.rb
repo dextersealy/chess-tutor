@@ -9,10 +9,10 @@ class Router
 
   # Run the route matching the request. Returns 404 if no match is found.
 
-  def run(req, res)
+  def run(req, res, options = {})
     route = match(req)
     if route
-      route.run(req, res)
+      route.run(req, res, options)
     else
       res.status = 404
       res.write("page #{req.path} not found")

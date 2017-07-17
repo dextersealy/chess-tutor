@@ -14,10 +14,20 @@ router.draw do
   get Regexp.new("^/move$"), ChessController, :make_move
 end
 
+options = {}
+OptionParser.new do |opts|
+  opts.on("-p", "--port PORT") do |port|
+    options[:port] = port
+  end
+  opts.on("-i", "--init BOARD", "Change the initial game board" ) do |board|
+    options[:board] = board
+  end
+end.parse!
+
 app = Proc.new do |env|
   req = Rack::Request.new(env)
   res = Rack::Response.new
-  router.run(req, res)
+  router.run(req, res, {options: options})
   res.finish
 end
 
@@ -25,12 +35,5 @@ app = Rack::Builder.new do
   use Static
   run app
 end.to_app
-
-options = {}
-OptionParser.new do |opts|
-  opts.on("-pPORT") do |port|
-    options[:port] = port
-  end
-end.parse!
 
 Rack::Server.start(app: app, Port: options[:port] || 3000)

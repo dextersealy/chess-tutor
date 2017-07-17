@@ -16,9 +16,9 @@ class Route
 
   # Extract route params, instantiate controller, and invoke action
 
-  def run(req, res)
+  def run(req, res, options = {})
     m = req.path.match(@pattern)
-    route_params = m.names.zip(m.captures).to_h
+    route_params = m.names.zip(m.captures).to_h.merge(options)
 
     controller = controller_class.new(req, res, route_params)
     controller.invoke_action(@action_name)

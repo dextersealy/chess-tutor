@@ -10,8 +10,14 @@ class ChessController < ControllerBase
   after_action :save_game, except: [:show, :moves]
 
   def init
-    @game = Game.new(session[:game_state])
-    @board = game.board
+    if params[:options][:board]
+      @board = Board.new(params[:options][:board])
+      params[:options].delete(:board)
+      @game = Game.new(nil, @board)
+    else
+      @game = Game.new(session[:game_state])
+      @board = game.board
+    end
   end
 
   def new
