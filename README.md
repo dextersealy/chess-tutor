@@ -18,7 +18,7 @@ You play White and the computer plays Black. When it's your turn, Chess Tutor di
 
 <table>
 <tr>
-<td><img src="doc/images/moveable-piece.png" width="60" height="60"></td>
+<td><img src="doc/images/moveable-piece.jpg" width="60" height="60"></td>
 <td>It draws a thick border around pieces you can move.</td>
 <td><img src="doc/images/threatened-moveable-piece.png" width="60" height="60"></td>
 <td> When one of your moveable pieces is threatened (i.e., it can be captured by the computer's next move) it adds a gradient background.</td>
