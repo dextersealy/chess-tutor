@@ -40,32 +40,32 @@ The front-end's only concern is rendering; it contains no knowledge of chess and
 
 When the back-end renders the board it assigns a unique ID to each square (e.g., "e1", "h7"). To display moves and threats, the front-end submits an AJAX request and the back-end returns the information coded to each square's unique ID.
 
-The front-end then toggles the class attributes of the affected squares, and CSS does the rest.
+The front-end Javascript toggles the class attributes of the affected squares, and CSS to do the rest.
 
 ### RESTful API
 
-The back-end API has the following entry points:
+The back-end API exposes the following entry points:
 
 - **POST /new**
-Resets the cookie to starting positions and returns a JSON object listing the captured pieces and the locations of the active pieces.
+Resets the board to starting positions and returns the board state (see below).
+- **GET /show**
+  Returns a JSON object with the current board state. The object lists the captured pieces and the locations of the active pieces
   ```
   {
     captured: {
       white: [ ],
       black: [ ]
-    },
-    active: {
-      a8: "&#9820;",
-      c8: "&#9821;",
-      d8: "&#9819;",
-      e8: "&#9818;",
-      ...
+      },
+      active: {
+        a8: "&#9820;",
+        c8: "&#9821;",
+        d8: "&#9819;",
+        e8: "&#9818;",
+        ...
+      }
     }
-  }
-  ```
+    ```
 
-- **GET /show**
-  Returns JSON object with the current board state (see above).
 - **GET /moves**
 Returns a JSON object detailing the current player's moves and threats.
 Each key is the position of one the player's pieces. The values are where it can move. For example, in the following snippet, the piece on **b4** can move to **b5** or **c5**.
