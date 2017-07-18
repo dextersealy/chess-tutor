@@ -35,7 +35,7 @@ Indicator|Description|Indicator|Description
 The first time you visit the site, it starts a new game and saves a compact representation in a browser cookie. This cookie requires fewer than 300 characters for a typical 40-move game. It uses a pseudo-[FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) notation to represent the game board and uses a similarly compact notation to record all the moves made by both players.
 
 ### Front-end
-[Back to top](#chesstutor)
+[Back to top](#chess-tutor)
 
 The front-end's only concern is rendering; it contains no knowledge of chess and could be adapted to other board games.
 
@@ -44,7 +44,7 @@ When the back-end renders the board it assigns a unique ID to each square (e.g.,
 The front-end toggles class attributes on the affected squares, and CSS handles the rest.
 
 ### Back-end
-[Back to top](#chesstutor)
+[Back to top](#chess-tutor)
 
 The back-end implements a RESTful API with the following entry points:
 
@@ -189,7 +189,7 @@ The **King** class overrides `#valid_moves` to account for its unique behaviors.
 - `#move_threats` returns threats to each potential move
 
 ### ComputerPlayer
-[Back to top](#chesstutor)
+[Back to top](#chess-tutor)
 
 **ComputerPlayer** calculates chess moves.
 
@@ -228,7 +228,7 @@ end
 The branching factor in chess is around 40 and on its turn **ComputerPlayer** may have to evaluate upwards of 64,000 moves. For better performance, it uses an extension library written in C and can evaluate ~9,000 moves per second.
 
 ### ChessUtil
-[Back to top](#chesstutor)
+[Back to top](#chess-tutor)
 
 **ChessUtil** is an Ruby C extension library that generates moves and evaluates boards. Ruby is a fast language for developing code, and a slow language for executing code. ChessUtil implements the most heavily used operations in C so that Chess Tutor can perform the millions of required calculations in reasonable time.
 
