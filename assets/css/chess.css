@@ -43,6 +43,7 @@ h1 {
 .contact {
   display: flex;
   align-items: center;
+  margin-right: -5px;
 }
 
 .contact a, .contact span {
@@ -51,10 +52,6 @@ h1 {
 
 .contact a {
   padding: 0 5px;
-}
-
-.contact {
-  margin-right: -5px;
 }
 
 header .contact span {
