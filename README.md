@@ -14,14 +14,14 @@ The first time you visit the site, it starts a new game and stores a compact cop
 
 ![Image of Starting Game](doc/images/evans-gambit.png)
 
-You play White and the computer plays Black. When it's your turn, Chess Tutor displays the following indicators:
+You play White and the computer plays Black. When it's your turn it displays the following indicators:
 
 Indicator|Description|Indicator|Description
 ---|---|---|---
-![](doc/images/moveable-piece.jpg)|It draws a thick border around pieces you can move|![](doc/images/threatened-moveable-piece.png)|When one of your moveable pieces is threatened (i.e., it can be captured by the computer's next move) it adds a gradient background.
+![](doc/images/moveable-piece.png)|It draws a thick border around pieces you can move|![](doc/images/threatened-moveable-piece.png)|When one of your moveable pieces is threatened (i.e., it can be captured by the computer's next move) it adds a gradient background.
 ![](doc/images/threatened-piece.png)|When one of your threatened pieces can't move, it draws it with a solid background.
 
-When you mouse over a piece, Chess Tutor highlights valid moves:
+When you mouse over a piece the application highlights valid moves:
 
 Indicator|Description|Indicator|Description
 ---|---|---|---
@@ -32,7 +32,7 @@ Indicator|Description|Indicator|Description
 
 ### Session cookie
 
-The first time you visit the site, Chess Tutor starts a new game and saves a compact representation in a browser cookie. This cookie requires fewer than 300 characters for a typical 40-move game. It uses a pseudo-[FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) notation to represent the game board and uses a similarly compact notation to record all the moves made by both players.
+The first time you visit the site, it starts a new game and saves a compact representation in a browser cookie. This cookie requires fewer than 300 characters for a typical 40-move game. It uses a pseudo-[FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) notation to represent the game board and uses a similarly compact notation to record all the moves made by both players.
 
 ### Front-end
 
