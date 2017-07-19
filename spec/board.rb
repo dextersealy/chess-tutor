@@ -4,11 +4,16 @@ require_relative '../models/board.rb'
 describe 'Board' do
   let(:board) { Board.new }
 
+  def ensure_save_restore(board)
+    expect(Board.new(board.state).state).to eq(board.state)
+  end
+
   def move(board, *moves)
     (0...moves.length).step(2) do |i|
       from, to = moves[i], moves[i + 1]
       board.move_piece(decode_pos(from.to_s), decode_pos(to.to_s))
     end
+    ensure_save_restore(board)
   end
 
   def get(board, loc)
