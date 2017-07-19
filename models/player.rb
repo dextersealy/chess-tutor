@@ -15,10 +15,17 @@ class Player
   end
 
   def threats
-    opposing = board.select { |piece| piece.color != color }
-    board.reduce(Hash.new) do |accumulator, piece|
-      next accumulator unless piece.color == color
-      threats = opposing.select { |p| p.valid_moves.include?(piece.current_pos) }
+    pieces = []
+    opposing = board.reduce(Hash.new) do |hash, piece|
+      pieces << piece if piece.color == color
+      hash[piece] = piece.valid_moves unless piece.color == color
+      hash
+    end
+
+    pieces.reduce(Hash.new) do |accumulator, piece|
+      threats = opposing.select do |_ ,moves|
+        ChessUtil::moves_include(moves, piece.current_pos)
+      end.keys
       next accumulator if threats.empty?
       accumulator[piece.current_pos] = threats.map { |t| t.current_pos }
       accumulator

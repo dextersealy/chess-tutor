@@ -52,7 +52,7 @@ class Undo
     to = decode_pos(str[2..3])
     piece = decode_piece(str[4], to)
     if str[5] == '-'
-      promoted = decode_piece(str[6])
+      promoted = decode_piece(str[6], from)
       castleable = nil
     else
       promoted = nil
