@@ -38,7 +38,7 @@ You play White and the computer plays Black. When it's your turn to make a move 
 Indicator|Description|Indicator|Description
 ---|---|---|---
 ![](doc/images/moveable-piece.png)|It draws a thick border around pieces you can move|![](doc/images/threatened-moveable-piece.png)|When one of your moveable pieces is threatened (i.e., it can be captured by the opponent's next move) it adds a gradient background.
-![](doc/images/threatened-piece.png)|When one of your threatened pieces can't move, it adds a solid background.
+![](doc/images/threatened-piece.png)|If one of your pieces is threatened and can't move, it adds a solid background.
 
 When you mouse over a moveable piece the game highlights valid moves:
 
@@ -73,26 +73,26 @@ Resets the board to starting positions and returns the board state (see below).
 
 - **GET /show**
   Returns a JSON object with the current board state. It lists the captured pieces and the locations of the active pieces. Pieces are represented by their [Unicode chess symbols](https://en.wikipedia.org/wiki/Chess_symbols_in_Unicode).
-  ```
+  ```JavaScript
   {
     captured: {
       white: [ ],
       black: [ ]
-      },
-      active: {
-        a8: "&#9820;",
-        c8: "&#9821;",
-        d8: "&#9819;",
-        e8: "&#9818;",
-        ...
-      }
+    },
+    active: {
+      a8: "&#9820;",
+      c8: "&#9821;",
+      d8: "&#9819;",
+      e8: "&#9818;",
+      ...
     }
-    ```
+  }
+  ```
 
 - **GET /moves**
 Returns a JSON object detailing the current player's moves and threats.
 Each key is the position of one the player's pieces. The values are where it can move. For example, in the following snippet, the piece on **b4** can move to **b5** or **c5**.
-  ```
+  ```JavaScript
   player: {
     b4: [
       "b5",
@@ -108,7 +108,7 @@ Each key is the position of one the player's pieces. The values are where it can
   }
   ```
   For threats, the keys are the *threatened* squares and the values are the *threatening* squares. In this snippet, the square **e6** is threatened by opposing pieces on **d7** and **f7**.
-  ```
+  ```JavaScript
   threats: {
     a6: [
       "b7"
@@ -126,7 +126,7 @@ Execute the human player's move. The back-end moves the piece from *loc1* to *lo
 
 - **GET /move**
 Execute the computer player's move; the back-end calculates the next move (this can take several seconds); updates the cookie, and returns the move and new board state:
-  ```
+  ```JavaScript
   {
     from: "b8",
     to: "c6",
@@ -181,12 +181,12 @@ The **Board** tracks pieces and moves. It implements the logic for castling and 
 
 Pieces are stored internally in a flat list. They can be indexed using [*row*, *column*] coordinates, but this is rarely used outside the class because it incorporates the **Enumerable** mixin to facilitate iteration.
 
-The major methods are:
-- ```#move_piece``` movse a piece
-- ```#undo_move``` reverses a move
-- ```#state``` returns the encoded board state
-- ```#captured``` returns the captured pieces on both sides
-- ```#in_check?``` tests whether a color is in check
+Board's major methods are:
+- `#move_piece` moves a piece
+- `#undo_move` reverses a move
+- `#state` returns the encoded board state
+- `#captured` returns the captured pieces on both sides
+- `#in_check?` tests whether a color is in check
 
 ### Piece
 [Back to top](#chess-tutor)
@@ -204,7 +204,7 @@ def valid_move?(end_pos)
 end
 ```
 
-The **King** class overrides `#valid_moves` to account for its unique behaviors. The other descendants implement ```#moves``` and rely on Piece to handle validation.
+**King** overrides `#valid_moves` to account for its unique behaviors. The other descendants implement `#moves` and rely on Piece to handle validation.
 
 ### Player
 [Back to top](#chess-tutor)
@@ -252,12 +252,12 @@ def minmax(max_depth, depth = 0, alpha = -100000, beta = 100000,
 end
 ```
 
-The branching factor in chess is around 40 and on its turn **ComputerPlayer** may have to evaluate upwards of 64,000 moves. For better performance, it uses an extension library written in C and can evaluate ~9,000 moves per second.
+The branching factor in chess is around 40 and on its turn **ComputerPlayer** may have to evaluate upwards of 64,000 moves. For better performance, it uses an extension library written in C, and can evaluate 9,000+ moves per second.
 
 ### ChessUtil
 [Back to top](#chess-tutor)
 
-**ChessUtil** is an Ruby C extension library that generates moves and evaluates boards. Ruby is a fast language for developing code, and a slow language for executing code. ChessUtil implements the most heavily used operations in C so that Chess Tutor can perform the millions of required calculations in reasonable time.
+**ChessUtil** is the Ruby C extension library that generates moves and evaluates boards. Ruby is a fast language for developing code, and a slow language for executing code. ChessUtil implements the most heavily used operations in C so that Chess Tutor can perform the millions of required calculations in reasonable time.
 
 - `#in_bounds` tests if a position falls within the 8x8 board coordinates
 - `#moves_include` tests if an array of moves includes a position
