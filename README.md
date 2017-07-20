@@ -8,6 +8,22 @@ While you play against the computer it shows you:
 
 Chess Tutor's [back-end](#back-end) runs atop the lightweight [Ruby on Tracks](https://github.com/dextersealy/ruby-on-tracks) controller/view framework. The [front-end](#front-end) is plain JavaScript with jQuery. The [AI](#computerplayer) utilizes a depth-first, minmax search to a depth of 3, and leverages a Ruby C [extension library](#chessutil) to evaluate ~9,000 moves per second.
 
+## Contents
+
+- [Playing the Game](#playing-the-game)
+- [Design](#design)
+  - [State](#state)
+  - [Front-end](#front-end)
+  - [Back-end](#back-end)
+- [Implementation](#implementation)
+  - [Routes](#routes)
+  - [Controller](#controller)
+  - [Game](#game)
+  - [Board](#board)
+  - [Piece](#piece)
+  - [Player](#player)
+  - [ComputerPlayer](#computerplayer)
+  - [C Extension Library](#chessutil)
 ## Playing the Game
 
 The first time you visit the site, it starts a new game and stores a compact copy in a browser cookie. When you revisit the site, you can pickup where you left off, or start a new game.
@@ -241,3 +257,9 @@ The branching factor in chess is around 40 and on its turn **ComputerPlayer** ma
 - `#get_knight_moves` generates moves for a Knight
 - `#get_king_moves` generates moves for a King
 - `#get_board_value` calculates the value of a board
+
+## License
+
+Chess Tutor Copyright (c) Dexter Sealy
+
+Chess Tutor is free software; you can distribute it and/or modify it subject to the terms of the [MIT license](https://opensource.org/licenses/MIT).
