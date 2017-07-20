@@ -6,7 +6,7 @@ While you play against the computer it shows you:
 - threats to your pieces
 - which of your moves are safe and which are not safe
 
-Chess Tutor's [back-end](#back-end) runs atop the lightweight [Ruby on Tracks](https://github.com/dextersealy/ruby-on-tracks) controller/view framework. The [front-end](#front-end) is plain JavaScript with jQuery. The [AI](#computerplayer) utilizes a depth-first, minmax search to a depth of 3, and leverages a Ruby C [extension library](#chessutil) to evaluate ~9,000 moves per second.
+Chess Tutor's [back-end](#back-end) runs atop the lightweight [Ruby on Tracks](https://github.com/dextersealy/ruby-on-tracks) controller/view framework. The [front-end](#front-end) is plain JavaScript with jQuery. The [AI](#computerplayer) utilizes a depth-first, minmax search to a depth of 3, and leverages a Ruby C [extension library](#chessutil) to evaluate 9,000+ moves per second.
 
 ## Contents
 
@@ -27,6 +27,7 @@ Chess Tutor's [back-end](#back-end) runs atop the lightweight [Ruby on Tracks](h
 - [License](#license)
 
 ## Playing the Game
+[Back to top](#chess-tutor)
 
 The first time you visit the site, it starts a new game and stores a compact copy in a browser cookie. When you revisit the site, you can pickup where you left off, or start a new game.
 
