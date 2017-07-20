@@ -24,6 +24,8 @@ Chess Tutor's [back-end](#back-end) runs atop the lightweight [Ruby on Tracks](h
   - [Player](#player)
   - [ComputerPlayer](#computerplayer)
   - [C Extension Library](#chessutil)
+- [License](#license)
+
 ## Playing the Game
 
 The first time you visit the site, it starts a new game and stores a compact copy in a browser cookie. When you revisit the site, you can pickup where you left off, or start a new game.
@@ -47,6 +49,7 @@ Indicator|Description|Indicator|Description
 ## Design
 
 ### State
+[Back to top](#chess-tutor)
 
 The first time you visit the site, it starts a new game and saves a compact representation in a browser cookie. This cookie requires fewer than 300 characters for a typical 40-move game. It uses a pseudo-[FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) notation to represent the game board and uses a similarly compact notation to record all the moves made by both players.
 
@@ -137,12 +140,14 @@ Execute the computer player's move; the back-end calculates the next move (this 
   }
   ```
 ## Implementation
+[Back to top](#chess-tutor)
 
 Chess Tutor's runs atop the lightweight [Ruby on Tracks](https://github.com/dextersealy/ruby-on-tracks) back-end framework, with  one small adaptation; the server accepts a board as a command line parameter so that during development you can bypass intermediate play and jump directly to a specific state.
 
 The file ```chess_server.rb``` is the main entry point. It parses the command line, maps the application's routes, then builds and starts the Rack server.
 
 ### Routes
+[Back to top](#chess-tutor)
 
 ```ruby
 router = Router.new
@@ -157,16 +162,19 @@ end
 ```
 
 ### Controller
+[Back to top](#chess-tutor)
 
 **ChessController** in ```chess_controller.rb``` implements the back-end actions.
 
 When a request arrives, the router creates a new controller instance. The controller instantiates  **Game**, **Player**  and **ComputerPlayer** objects as needed, and performs the action. When the response is complete an ```after_action``` saves the new game state in the user's session.
 
 ### Game
+[Back to top](#chess-tutor)
 
 The **Game** class implements the high-level game interface. It mostly delegates to the **Board** class, but has the important responsibility of tracking who is the current player (i.e., White or Black).
 
 ### Board
+[Back to top](#chess-tutor)
 
 The **Board** tracks pieces and moves. It implements the logic for castling and pawn promotion, but otherwise delegates chess knowledge to **Piece** and its descendants.
 
@@ -180,6 +188,7 @@ The major methods are:
 - ```#in_check?``` tests whether a color is in check
 
 ### Piece
+[Back to top](#chess-tutor)
 
 **Piece** is the base class for chess pieces; a piece knows its color and board position.
 
@@ -197,6 +206,7 @@ end
 The **King** class overrides `#valid_moves` to account for its unique behaviors. The other descendants implement ```#moves``` and rely on Piece to handle validation.
 
 ### Player
+[Back to top](#chess-tutor)
 
 **Player** has a color and holds a reference to the Game:
 
@@ -259,6 +269,7 @@ The branching factor in chess is around 40 and on its turn **ComputerPlayer** ma
 - `#get_board_value` calculates the value of a board
 
 ## License
+[Back to top](#chess-tutor)
 
 Chess Tutor Copyright (c) Dexter Sealy
 
