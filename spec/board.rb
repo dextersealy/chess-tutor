@@ -4,9 +4,15 @@ require_relative '../models/board.rb'
 describe 'Board' do
   let(:board) { Board.new }
 
+  # Verify reconstructing board from saved state yields original board
+
   def ensure_save_restore(board)
     expect(Board.new(board.state).state).to eq(board.state)
   end
+
+  # Execute a sequence of moves; input of array of even length
+  # where the nth value is the starting position and nth+1 value
+  # if the ending position
 
   def move(board, *moves)
     (0...moves.length).step(2) do |i|
@@ -16,11 +22,15 @@ describe 'Board' do
     ensure_save_restore(board)
   end
 
+  # Get a piece on the board
+
   def get(board, loc)
     piece = board[decode_pos(loc.to_s)]
     return nil if piece.nil?
     piece.to_s
   end
+
+  # Remove undo history from board state
 
   def chomp_undo(str)
     str.split("|")[0...-1].join("|")

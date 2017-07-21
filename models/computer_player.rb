@@ -3,6 +3,7 @@ require_relative 'util.rb'
 require_relative '../c/chess_util'
 
 class ComputerPlayer < Player
+
   def get_move
     calculate_move
   end
@@ -33,7 +34,7 @@ class ComputerPlayer < Player
       board.undo_move
 
       if maximizing
-        best_move = move if value > best_value
+        best_move = move if best_move.nil? || value > best_value
         best_value = value if value > best_value
         alpha = best_value if best_value > alpha
       else

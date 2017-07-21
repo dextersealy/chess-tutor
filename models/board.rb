@@ -83,7 +83,8 @@ class Board
   end
 
   def in_check?(color)
-    can_any_piece_move_to? king_of(color).current_pos
+    king = king_of(color)
+    king.nil? || can_any_piece_move_to?(king.current_pos)
   end
 
   def checkmate?(color)

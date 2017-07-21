@@ -1,3 +1,5 @@
+# Generate array of all diagonal moves centered around a position
+
 def diagonal_moves(row, col)
   moves = []
   for i in (1..7) do
@@ -13,6 +15,9 @@ def diagonal_moves(row, col)
   moves
 end
 
+# Generate array of all horizontal and vertical  moves centered around
+# a position
+
 def straight_line_moves(row, col)
   moves = []
   for i in (1..7) do
@@ -23,6 +28,8 @@ def straight_line_moves(row, col)
   end
   moves
 end
+
+# Generate array of all one step moves centered around a position
 
 def single_step_moves(row, col)
   moves = []
