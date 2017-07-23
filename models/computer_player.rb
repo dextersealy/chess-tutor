@@ -4,18 +4,24 @@ require_relative '../c/chess_util'
 
 class ComputerPlayer < Player
 
-  def get_move
-    calculate_move
+  def get_move(options = {})
+    options = {timeit: false}.merge(options)
+    best_move, _ = exec(options) { minmax(3) }
+    best_move
   end
 
   private
 
-  def calculate_move
-    t1 = Time.now
+  def exec(options, &blk)
     @move_count = 0
-    best_move, _ = minmax(3)
-    puts "examined #{@move_count} moves in #{'%.02f' % (Time.now - t1)}s"
-    best_move
+    if options[:timeit]
+      t1 = Time.now
+      result = *blk.call
+      puts "examined #{@move_count} moves in #{'%.02f' % (Time.now - t1)}s"
+    else
+      result = *blk.call
+    end
+    return *result
   end
 
   def minmax(max_depth, depth = 0, alpha = -100000, beta = 100000,

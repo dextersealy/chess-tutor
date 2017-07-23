@@ -29,12 +29,23 @@ describe 'ComputerPlayer' do
       expect(encode_move(ComputerPlayer.new(game).get_move)).to eq([:b8, :c6])
     end
 
-    it "makes a final move" do
-      board = Board.new("1r4K1/P2R1PPP/8/2P5/2p2p2/2b5/p1p3pp/6k1||")
-      game = Game.new(nil, board)
-      move(game, :b8, :a8)
-      move = ComputerPlayer.new(game).get_move
-      p move
+    context "imminent checkmate" do
+      it "makes a move" do
+        game = Game.new(nil, Board.new("1r4K1/P2R1PPP/8/2P5/2p2p2/2b5/p1p3pp/6k1||"), :black)
+        ai_move = encode_move(ComputerPlayer.new(game).get_move(verbose: false))
+        expect(ai_move).to eq([:d7, :d8])
+      end
+    end
+
+    context "checkmate" do
+      it "returns nil" do
+        game = Game.new(nil, Board.new("R1Bq2K1/PPP2PPP/2N5/31pQ2/8/1pn2n1p/p1p2pp1/3rr1k1||"), :black)
+        ai_move = encode_move(ComputerPlayer.new(game).get_move(verbose: false))
+        expect(ai_move).to eq([:c6, :d8])
+        move(game, *ai_move, :d1, :d8)
+        ai_move = ComputerPlayer.new(game).get_move(verbose: false)
+        expect(ai_move).to eq(nil)
+      end
     end
   end
 

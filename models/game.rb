@@ -3,13 +3,13 @@ require_relative 'board.rb'
 class Game
   attr_accessor :board, :current_player
 
-  def initialize(prev_state = {}, board = nil)
+  def initialize(prev_state = {}, board = nil, player = nil)
     if prev_state && prev_state['V'] == VERSION
       @board = Board.new(prev_state['B'])
       @current_player = prev_state['P'].to_sym
     else
       @board = board || Board.new
-      @current_player = :white
+      @current_player = player || :white
     end
   end
 
