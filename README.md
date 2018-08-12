@@ -196,6 +196,13 @@ Board's major methods are:
 `#valid_moves` returns the places where the piece can move. Internally, Piece calls its descendant's `#moves` method and rejects moves that would place/leave the player in check:
 
 ```ruby
+
+def valid_moves
+  result = moves
+  result.select! { |pos| valid_move?(pos) }
+  result
+end
+  
 def valid_move?(end_pos)
   board.move_piece(current_pos, end_pos)
   result = !board.in_check?(color)
