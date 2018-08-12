@@ -66,7 +66,7 @@ The front-end toggles class attributes on the affected squares, and CSS handles 
 ### Back-end
 [Back to top](#chess-tutor)
 
-The back-end implements a RESTful API with the following entry points:
+The back-end implements an API with the following entry points:
 
 - **POST /new**
 Resets the board to starting positions and returns the board state (see below).
